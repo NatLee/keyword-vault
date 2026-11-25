@@ -1,0 +1,64 @@
+//! 不存檔的小工具：檢查語法、比對兩段語法。
+
+use axum::{extract::State, Json};
+use serde::Deserialize;
+use serde_json::{json, Value};
+
+use crate::{
+    auth::CurrentUser,
+    error::{AppError, AppResult},
+    state::AppState,
+    syntax::{self, MAX_EXPANDED_CHARS},
+};
+
+#[derive(Deserialize)]
+pub struct CheckBody {
+    expression: String,
+    /// 每個詞要不要加雙引號（完全比對）。預設要。
+    precise: Option<bool>,
+}
+
+pub async fn check(
+    State(state): State<AppState>,
+    _user: CurrentUser,
+    Json(body): Json<CheckBody>,
+) -> AppResult<Json<Value>> {
+    if body.expression.chars().count() > MAX_EXPANDED_CHARS {
+        return Err(AppError::bad("內容太長了"));
+    }
+    let precise = body.precise.unwrap_or(true);
+    Ok(Json(
+        match syntax::compile(&body.expression, state.config.default_slop, precise) {
+            Ok(compiled) => json!({
+                "valid": true,
+                "query_string": compiled.query_string,
+                "terms": compiled.terms,
+            }),
+            Err(err) => json!({
+                "valid": false,
+                "error": { "message": err.message_zh(), "position": err.position },
+            }),
+        },
+    ))
+}
+
+#[derive(Deserialize)]
+pub struct DiffBody {
+    a: String,
+    b: String,
+}
+
+pub async fn diff(_user: CurrentUser, Json(body): Json<DiffBody>) -> AppResult<Json<Value>> {
+    // 逐字比對的成本和兩邊長度的乘積有關
+    const MAX_CHARS: usize = 10_000;
+    if body.a.chars().count() > MAX_CHARS || body.b.chars().count() > MAX_CHARS {
+        return Err(AppError::bad(format!("比對的內容最多 {MAX_CHARS} 個字元")));
+    }
+    let (a, b) = (body.a, body.b);
+    let segments = tokio::task::spawn_blocking(move || {
+        let segments = syntax::diff(&a, &b);
+        (a == b, segments)
+    })
+    .await?;
+    Ok(Json(json!({ "same": segments.0, "segments": segments.1 })))
+}

@@ -1,0 +1,189 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/hero-dark.png">
+    <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/hero-light.png" alt="Keyword Vault：團隊的關鍵字庫" width="100%">
+  </picture>
+</p>
+
+<p align="center">
+  <a href="https://github.com/NatLee/keyword-vault/actions/workflows/ci.yml"><img src="https://github.com/NatLee/keyword-vault/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/backend-Rust%20%2B%20axum-b7410e" alt="Rust + axum">
+  <img src="https://img.shields.io/badge/frontend-React%20%2B%20Tailwind-4f46e5" alt="React + Tailwind">
+  <img src="https://img.shields.io/badge/docker-one%20image-2496ed" alt="Docker">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
+</p>
+
+做輿情分析、社群聆聽的團隊，每個人手上都有一堆搜尋用的關鍵字語法：`(珍珠奶茶|(珍珠 鮮奶 ~))&手搖!廣告` 這種。它們通常散在各自的試算表和聊天紀錄裡，同一個主題每個人各寫一份，改了也沒人知道。
+
+Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看得到實際送給 Elasticsearch / OpenSearch 的 `query_string`；寫好可以分享給群組或所有人；常用的幾組可以用編號組成新的關鍵字，底下的改了，上面的跟著更新。
+
+一個 Docker 映像檔就是全部：Rust 後端、React 前端、SQLite 資料庫，不需要另外架搜尋引擎。
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-keywords-dark.png">
+    <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-keywords-light.png" alt="關鍵字清單：搜尋、依範圍和標籤篩選，語法有上色" width="100%">
+  </picture>
+</p>
+
+## 功能
+
+- **語法即時檢查**：邊打邊檢查，錯在第幾個字元直接告訴你；正確時顯示轉出來的 `query_string`，可以一鍵複製。
+- **分享範圍**：私人、群組、公開三種。別人的關鍵字可以看、可以收藏、可以留言，但只有擁有者能改。
+- **組合關鍵字**：用 `(#3|#5)!#8` 把現有的關鍵字接起來。每個關鍵字展開時自己包一層括號，意思不會跑掉；被引用的關鍵字改了語法，組合關鍵字會跟著更新。
+- **修改紀錄**：每次改語法都留下紀錄，點開就看到改了哪幾個字。
+- **語法比對**：兩段很長的語法貼進去，哪裡不一樣一眼看出來。
+- **標籤、收藏、留言、搜尋**，以及 CSV 匯入和匯出。匯入時每一列都先檢查語法，有一列不對就整批不匯入，並列出每一列的問題。
+- **帳號和群組**：第一個打開網頁的人建立管理員，沒有預設帳號，也沒有預設密碼。密碼用 Argon2 雜湊，登入是 HttpOnly cookie。
+- 淺色和深色模式。
+
+## 畫面
+
+### 總覽
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-overview-dark.png">
+    <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-overview-light.png" alt="總覽：關鍵字數量、每月新增、今日關鍵字、最近更新" width="100%">
+  </picture>
+</p>
+
+### 新增關鍵字
+
+語法寫到一半就知道對不對，下面是實際會送出去的 `query_string`。
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-editor-light.png" alt="新增關鍵字的對話框：語法、即時檢查結果、分享範圍、標籤" width="100%">
+</p>
+
+### 組合關鍵字
+
+`(#1|#2)!#3`：手搖飲的幾種說法，扣掉業配和抽獎文。
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-detail-dark.png">
+    <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-detail-light.png" alt="組合關鍵字的頁面：展開後的語法、組合方式、query_string、留言" width="100%">
+  </picture>
+</p>
+
+### 修改紀錄和留言
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-history-light.png" alt="一般關鍵字的頁面：留言，以及每次修改加了哪些字" width="100%">
+</p>
+
+### 語法比對
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-compare-light.png" alt="語法比對：左右兩段語法和它們的差異" width="100%">
+</p>
+
+### 語法說明
+
+說明頁上面有練習區，表格裡的每個例子都可以按一下直接試。
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-guide-light.png" alt="語法說明：練習區和語法表" width="100%">
+</p>
+
+### 設定
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-settings-light.png" alt="設定：個人資料、密碼、群組、帳號管理" width="100%">
+</p>
+
+## 快速開始
+
+```bash
+git clone https://github.com/NatLee/keyword-vault.git && cd keyword-vault
+docker compose up -d --build
+```
+
+1. 打開 <http://localhost:8686>。
+2. 第一次會請你建立管理員帳號（密碼至少 8 個字元）。
+3. 到「設定」新增其他人的帳號，需要的話建立群組。
+4. 到「關鍵字」按「新增關鍵字」，或用「匯入」一次放進一批。
+
+想先看有資料的樣子，可以在**空的資料庫**裡放範例資料（4 個帳號、39 個關鍵字，內容都是虛構的）：
+
+```bash
+docker compose run --rm keyword-vault keyword-vault demo
+```
+
+密碼會印在畫面上；管理員帳號是 `demo`。
+
+忘記密碼時，管理員可以在「設定」幫別人重設。連管理員都進不去的話：
+
+```bash
+docker compose exec keyword-vault keyword-vault reset-password <帳號>
+```
+
+## 語法
+
+| 寫法 | 意思 | 轉出來的 `query_string` |
+|---|---|---|
+| `a&b` | 兩個都要出現 | `"a" AND "b"` |
+| `a\|b` | 出現其中一個 | `"a" OR "b"` |
+| `a!b` | 有 a 但不能有 b | `"a" NOT "b"` |
+| `(a\|b)&c` | 先算括號裡的 | `("a" OR "b") AND "c"` |
+| `(a b ~)` | a 和 b 相距 20 個字以內 | `("a b"~20)` |
+| `(a b ~5)` | 相距 5 個字以內 | `("a b"~5)` |
+| `\&` `\|` `\!` `\~` `\(` `\)` | 這個字本身 | |
+
+全形的 `＆｜！（）` 會自動當成半形。運算子照寫的順序送出去，不會自動排優先順序，`&` 和 `|` 混用時請加括號。
+
+語法解析器是另一個獨立的 Rust crate，[es-keyword-query](src/api/vendor/es-keyword-query)，原始碼一起放在這個 repo 裡。
+
+## CSV 匯入
+
+第一列是欄位名稱，`主題` 和 `關鍵字` 一定要有：
+
+```csv
+主題,關鍵字,分享範圍,標籤
+手搖飲,珍珠奶茶|(珍珠 鮮奶 ~),公開,飲料;熱門
+電動車,(電動車|電動機車)&補助!二手,私人,交通
+```
+
+`分享範圍` 是 `私人`、`群組` 或 `公開`，沒寫是私人；`標籤` 用 `;` 分開。匯出的檔案可以直接再匯入。
+
+## 設定
+
+都是環境變數，全部可以不設。用 docker compose 時寫在同一個資料夾的 `.env`。
+
+| 變數 | 預設 | 說明 |
+|---|---|---|
+| `KV_PORT` | `8686` | docker compose 對外的 port |
+| `KV_PUBLIC_URL` | | 外部看到的網址，例如 `https://keywords.example.com`。是 https 時登入 cookie 會加 `Secure`，也用來判斷寫入請求是不是同源 |
+| `KV_COOKIE_SECURE` | 看 `KV_PUBLIC_URL` | `true` / `false`，強制指定 cookie 要不要加 `Secure` |
+| `KV_DEFAULT_SLOP` | `20` | `~` 後面沒寫數字時用的距離 |
+| `KV_BIND` | `0.0.0.0:8686` | 伺服器聽的位址 |
+| `KV_DATA_DIR` | `data`（映像檔裡是 `/app/data`） | 放 SQLite 資料庫的資料夾 |
+| `KV_DATABASE_PATH` | `<KV_DATA_DIR>/keyword-vault.db` | 資料庫檔案 |
+| `KV_STATIC_DIR` | `src/web/dist`（映像檔裡是 `/app/web`） | 前端檔案的位置 |
+
+資料都在 `keyword-vault-data` 這個 volume 的 SQLite 檔案裡，備份那個檔案就好。
+
+## 開發
+
+需要 Rust（stable）、Node 24、pnpm。
+
+```bash
+# 後端：http://127.0.0.1:8686
+cd src/api && cargo run
+
+# 前端：http://localhost:5173，/api 會轉給後端
+cd src/web && pnpm install && pnpm dev
+```
+
+```bash
+cd src/api && cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test
+cd src/web && pnpm test && pnpm build
+bash docs/smoke-test.sh http://127.0.0.1:8686   # 對一個空的執行個體跑一輪
+```
+
+API 文件在 [docs/api.md](docs/api.md)。
+
+## 授權
+
+[MIT](LICENSE) © Nat Lee

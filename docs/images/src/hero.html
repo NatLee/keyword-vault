@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- README 最上面那張圖。用瀏覽器開 hero.html（淺色）或 hero.html?dark（深色），截 1280×360。 -->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root { --bg: #ffffff; --fg: #18181b; --muted: #52525b; --card: #f4f4f5; --line: #e4e4e7; --brand: #4f46e5; --near: #d97706; --paren: #a1a1aa; }
+      .dark { --bg: #09090b; --fg: #fafafa; --muted: #a1a1aa; --card: #18181b; --line: #27272a; --brand: #a5b4fc; --near: #fbbf24; --paren: #71717a; }
+      * { box-sizing: border-box; margin: 0; }
+      body { width: 1280px; height: 360px; background: var(--bg); color: var(--fg); font-family: "Inter", "Noto Sans TC", "PingFang TC", system-ui, sans-serif;
+        display: flex; align-items: center; gap: 56px; padding: 0 72px;
+        background-image: radial-gradient(520px 300px at 88% 0%, color-mix(in oklab, var(--brand) 22%, transparent), transparent 70%); }
+      .logo { width: 72px; height: 72px; }
+      h1 { font-size: 52px; letter-spacing: -0.03em; margin-top: 18px; }
+      p { font-size: 22px; color: var(--muted); margin-top: 10px; }
+      .panel { flex: 1; border: 1px solid var(--line); background: var(--card); border-radius: 20px; padding: 26px 30px; font: 21px/1.9 ui-monospace, Menlo, monospace; }
+      .op { color: var(--brand); font-weight: 700; padding: 0 3px; } .near { color: var(--near); font-weight: 700; } .paren { color: var(--paren); }
+      .arrow { color: var(--muted); font-size: 15px; margin: 8px 0 2px; font-family: inherit; }
+      .out { font-size: 16px; color: var(--muted); line-height: 1.7; }
+    </style>
+  </head>
+  <body>
+    <div>
+      <img class="logo" src="../../../src/web/public/favicon.svg" alt="" />
+      <h1>Keyword Vault</h1>
+      <p>團隊的關鍵字庫：寫一次，大家一起用</p>
+    </div>
+    <div class="panel">
+      <span class="paren">(</span>珍珠奶茶<span class="op">|</span><span class="paren">(</span>珍珠 鮮奶 <span class="near">~</span><span class="paren">))</span><span class="op">&amp;</span>手搖<span class="op">!</span>廣告
+      <div class="arrow">↓ query_string</div>
+      <div class="out">("珍珠奶茶" OR ("珍珠 鮮奶"~20)) AND "手搖" NOT "廣告"</div>
+    </div>
+    <script>if (location.search.includes("dark")) document.documentElement.classList.add("dark");</script>
+  </body>
+</html>

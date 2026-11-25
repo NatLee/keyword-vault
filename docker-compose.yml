@@ -1,0 +1,20 @@
+services:
+  keyword-vault:
+    build: .
+    image: keyword-vault:latest
+    container_name: keyword-vault
+    restart: unless-stopped
+    ports:
+      - "${KV_PORT:-8686}:8686"
+    volumes:
+      # SQLite 資料庫在這裡，請記得備份
+      - keyword-vault-data:/app/data
+    environment:
+      # 外部看到的網址；是 https 時登入 cookie 會加 Secure，也用來判斷寫入請求是不是同源
+      KV_PUBLIC_URL: ${KV_PUBLIC_URL:-}
+      KV_COOKIE_SECURE: ${KV_COOKIE_SECURE:-}
+      # `~` 後面沒寫數字時用的距離（預設 20）
+      KV_DEFAULT_SLOP: ${KV_DEFAULT_SLOP:-}
+
+volumes:
+  keyword-vault-data:
