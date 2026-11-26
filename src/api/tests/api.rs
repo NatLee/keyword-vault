@@ -933,3 +933,101 @@ async fn demo_data_builds_and_the_overview_counts_it() {
     let list = t.get(&kevin, "/api/keywords?q=%E5%9C%B0%E9%9C%87").await;
     assert_eq!(list["total"], 0);
 }
+
+#[tokio::test]
+async fn overflowing_page_offset_returns_bad_request() {
+    let t = TestApp::new().await;
+    let admin = t.admin().await;
+    let (status, _) = t
+        .call(
+            Some(&admin),
+            Method::GET,
+            "/api/keywords?page=9223372036854775807&page_size=100",
+            None,
+        )
+        .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    let list = t
+        .get(&admin, "/api/keywords?page=9223372036854775807&page_size=1")
+        .await;
+    assert_eq!(list["items"], json!([]));
+}
+
+#[tokio::test]
+async fn simultaneous_setup_creates_exactly_one_admin() {
+    let t = TestApp::new().await;
+    let first = t.call(
+        None,
+        Method::POST,
+        "/api/auth/setup",
+        Some(json!({"username":"first", "password":PASSWORD})),
+    );
+    let second = t.call(
+        None,
+        Method::POST,
+        "/api/auth/setup",
+        Some(json!({"username":"second", "password":PASSWORD})),
+    );
+    let (a, b) = tokio::join!(first, second);
+    let mut statuses = [a.0.as_u16(), b.0.as_u16()];
+    statuses.sort();
+    assert_eq!(statuses, [200, 409]);
+    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+        .fetch_one(&t.state.db)
+        .await
+        .unwrap();
+    assert_eq!(count, 1);
+}
+
+#[tokio::test]
+async fn nested_combinations_are_validated_before_save_and_cascade() {
+    let t = TestApp::new().await;
+    let admin = t.admin().await;
+    let nested = |depth| format!("{}tea{}", "(".repeat(depth), ")".repeat(depth));
+    let left = t
+        .create(&admin, json!({"theme":"nested", "expression":nested(127)}))
+        .await;
+    let right = t
+        .create(&admin, json!({"theme":"other", "expression":"coffee"}))
+        .await;
+    let logic = format!("#{}|#{}", left["id"], right["id"]);
+    let combination = t
+        .create(&admin, json!({"theme":"combined", "logic":logic}))
+        .await;
+    let (status, _) = t
+        .call(
+            Some(&admin),
+            Method::POST,
+            "/api/keywords",
+            Some(json!({"theme":"too deep", "logic":format!("({logic})")})),
+        )
+        .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    let (status, _) = t
+        .call(
+            Some(&admin),
+            Method::PATCH,
+            &format!("/api/keywords/{}", left["id"]),
+            Some(json!({"expression":nested(128)})),
+        )
+        .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    let current = t
+        .get(&admin, &format!("/api/keywords/{}", combination["id"]))
+        .await;
+    assert_eq!(current["expression"], combination["expression"]);
+    let base = t
+        .get(&admin, &format!("/api/keywords/{}", left["id"]))
+        .await;
+    assert_eq!(base["expression"], nested(127));
+    let (status, body) = t
+        .call(
+            Some(&admin),
+            Method::POST,
+            "/api/tools/check",
+            Some(json!({"expression":nested(10_000)})),
+        )
+        .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["valid"], false);
+}

@@ -1,0 +1,13 @@
+
+> keyword-vault-web@1.0.0 test <repo>/src/web
+> vitest run
+
+
+ RUN  v4.1.12 <repo>/src/web
+
+
+ Test Files  3 passed (3)
+      Tests  9 passed (9)
+   Start at  03:30:44
+   Duration  1.46s (transform 287ms, setup 633ms, import 585ms, tests 501ms, environment 1.38s)
+

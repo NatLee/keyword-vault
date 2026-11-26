@@ -13,8 +13,8 @@ function rules(slop: number): { syntax: string; meaning: string; example: string
     { syntax: "a|b", meaning: "出現其中一個就算", example: "珍珠奶茶|波霸奶茶" },
     { syntax: "a!b", meaning: "有 a 但不能有 b", example: "蘋果!水果" },
     { syntax: "( )", meaning: "先算括號裡的。& 和 | 混用時一定要加括號", example: "(電動車|電動機車)&補助" },
-    { syntax: "(a b ~)", meaning: `a 和 b 相距 ${slop} 個字以內`, example: "(珍珠 鮮奶 ~)" },
-    { syntax: "(a b ~5)", meaning: "自己指定距離：相距 5 個字以內", example: "(颱風 停班 ~5)" },
+    { syntax: "(a b ~)", meaning: `片語 slop 設為 ${slop}（詞位移，非字數）`, example: "(珍珠 鮮奶 ~)" },
+    { syntax: "(a b ~5)", meaning: "自己指定片語 slop：5", example: "(颱風 停班 ~5)" },
     { syntax: "\\& \\| \\! \\~ \\( \\)", meaning: "前面加反斜線，就是這個字本身", example: "AT\\&T|M\\&M" },
   ];
 }

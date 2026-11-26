@@ -10,7 +10,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      "/api": apiTarget,
+      // Preserve the browser Host so the API can validate same-origin writes.
+      "/api": { target: apiTarget, changeOrigin: false },
     },
   },
   build: {

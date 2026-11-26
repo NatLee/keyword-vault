@@ -26,7 +26,7 @@ function StatCard({
   to: string;
 }) {
   return (
-    <Link to={to} className="card flex items-center gap-3 p-4 transition-colors hover:border-brand-300 dark:hover:border-brand-700">
+    <Link to={to} className="vault-stat flex items-center gap-3 p-4 transition-colors">
       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-300">
         <Icon className="size-5" />
       </span>
@@ -108,19 +108,20 @@ export function Dashboard() {
   return (
     <PageBody>
       <PageHeader
-        title={`${user.display_name}，你好`}
-        subtitle="團隊累積的關鍵字都在這裡，寫好一次、大家一起用。"
+        title="語法工作台"
+        subtitle={`${user.display_name}，從一個好關鍵字開始，建立可重用的搜尋知識。`}
         actions={
           <button className="btn btn-primary" onClick={() => setCreating(true)}>
             <Plus className="size-4" /> 新增關鍵字
           </button>
         }
       />
+      <section className="workbench-intro"><div><p className="eyebrow">COLLECT. COMPOSE. REFINE.</p><h2>每一個查詢，<br />都有值得留下的語法。</h2><Link to="/keywords" className="workbench-link">開啟語法庫 <span>↗</span></Link></div><div className="workbench-example"><span className="eyebrow">THE LANGUAGE OF SEARCH</span><p><code>關鍵字 <b>&amp;</b> 洞察<br />(收集 <b>|</b> 重用) <b>!</b> 雜訊</code></p><Link to="/guide">四個運算子，組出精準查詢 →</Link></div></section>
       {error && <ErrorBanner message={error} />}
       {loading && !data && <Loading />}
       {data && (
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="vault-stats grid grid-cols-2 lg:grid-cols-4">
             <StatCard icon={Library} label="看得到的關鍵字" value={data.total} note="自己的加上別人分享的" to="/keywords" />
             <StatCard
               icon={KeyRound}
@@ -133,7 +134,7 @@ export function Dashboard() {
             <StatCard icon={Star} label="我的收藏" value={data.favorites} to="/keywords?scope=favorites" />
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
             <section className="card p-5 lg:col-span-3">
               <h2 className="mb-4 font-semibold">每月新增</h2>
               <MonthlyChart monthly={data.monthly} />
@@ -143,7 +144,7 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
             <section className="card lg:col-span-3">
               <div className="flex items-center justify-between px-5 pt-5 pb-2">
                 <h2 className="font-semibold">最近更新</h2>

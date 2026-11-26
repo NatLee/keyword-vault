@@ -1,6 +1,7 @@
 import { LogIn, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { ErrorBanner, Spinner } from "../components/ui";
+import { ThemeToggle } from "../components/Layout";
 import { useApp } from "../context";
 import { errorText } from "../lib/hooks";
 
@@ -34,18 +35,25 @@ export function Login({ setupRequired }: { setupRequired: boolean }) {
   };
 
   return (
-    <div className="grid min-h-screen place-items-center bg-[radial-gradient(600px_320px_at_80%_0%,var(--color-brand-100),transparent_70%)] px-4 dark:bg-[radial-gradient(600px_320px_at_80%_0%,color-mix(in_oklab,var(--color-brand-500)_20%,transparent),transparent_70%)]">
+    <div className="login-workspace">
+      <section className="login-intro">
+        <div className="login-wordmark"><img src="/favicon.svg" alt="" /> KEYWORD VAULT</div>
+        <div><p className="eyebrow">THE TEAM’S EXPRESSION LIBRARY</p><h2>把關鍵字<br />寫成團隊的<br /><em>共同語言。</em></h2><p className="login-description">整理、組合、驗證。讓每一組搜尋語法，都能被找到、理解與重用。</p></div>
+        <div className="login-specimen"><span>EXPRESSION / 001</span><code>(珍珠奶茶 <b>|</b> 波霸奶茶)<br /><b>&amp;</b> (推薦 <b>|</b> 評價) <b>!</b> 業配</code><div><span>01 收集</span><span>02 驗證</span><span>03 分享</span></div></div>
+      </section>
+      <section className="login-access"><div className="login-theme"><ThemeToggle /></div>
       <form
-        className="card w-full max-w-sm p-6"
+        className="login-form w-full max-w-sm"
         onSubmit={(e) => {
           e.preventDefault();
           void submit();
         }}
       >
-        <div className="mb-6 flex items-center gap-3">
+        <p className="eyebrow mb-3">YOUR PRIVATE WORKSPACE</p>
+        <div className="mb-8 flex items-center gap-3">
           <img src="/favicon.svg" alt="" className="size-10" />
           <div>
-            <h1 className="font-semibold tracking-tight">Keyword Vault</h1>
+            <h1 className="text-3xl font-semibold tracking-tight">{setupRequired ? "建立工作空間" : "歡迎回來"}</h1>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               {setupRequired ? "第一次使用：建立管理員帳號" : "團隊的關鍵字庫"}
               {meta ? `・v${meta.version}` : ""}
@@ -104,7 +112,7 @@ export function Login({ setupRequired }: { setupRequired: boolean }) {
             ? "這個帳號可以新增其他成員和群組。之後這個畫面就不會再出現。"
             : "沒有帳號或忘記密碼，請找管理員。"}
         </p>
-      </form>
+      </form><p className="login-footnote">寫好一次，讓好語法持續累積。</p></section>
     </div>
   );
 }

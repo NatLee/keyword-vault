@@ -1,9 +1,6 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/hero-dark.png">
-    <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/hero-light.png" alt="Keyword Vault：團隊的關鍵字庫" width="100%">
-  </picture>
-</p>
+![Keyword Vault：團隊的語法工作台](docs/images/cover.svg)
+
+# Keyword Vault
 
 <p align="center">
   <a href="https://github.com/NatLee/keyword-vault/actions/workflows/ci.yml"><img src="https://github.com/NatLee/keyword-vault/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -21,10 +18,16 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-keywords-dark.png">
-    <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-keywords-light.png" alt="關鍵字清單：搜尋、依範圍和標籤篩選，語法有上色" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-keywords-dark.png">
+    <img src="docs/images/screenshot-keywords-light.png" alt="關鍵字清單：搜尋、依範圍和標籤篩選，語法有上色" width="100%">
   </picture>
 </p>
+
+## 工作區設計
+
+以語法本身為中心：水平工具導覽、帶編號的語法索引、直接可讀的運算式與
+標籤篩選。暖灰紙面、墨綠底色與琥珀運算子搭配自動或手動的深淺色模式；
+手機上工具導覽收進選單，語法會換行而不把畫面撐寬。
 
 ## 功能
 
@@ -39,12 +42,12 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 
 ## 畫面
 
-### 總覽
+### 語法工作台
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-overview-dark.png">
-    <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-overview-light.png" alt="總覽：關鍵字數量、每月新增、今日關鍵字、最近更新" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-overview-dark.png">
+    <img src="docs/images/screenshot-overview-light.png" alt="總覽：關鍵字數量、每月新增、今日關鍵字、最近更新" width="100%">
   </picture>
 </p>
 
@@ -53,7 +56,7 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 語法寫到一半就知道對不對，下面是實際會送出去的 `query_string`。
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-editor-light.png" alt="新增關鍵字的對話框：語法、即時檢查結果、分享範圍、標籤" width="100%">
+  <img src="docs/images/screenshot-editor-light.png" alt="新增關鍵字的對話框：語法、即時檢查結果、分享範圍、標籤" width="100%">
 </p>
 
 ### 組合關鍵字
@@ -62,21 +65,21 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-detail-dark.png">
-    <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-detail-light.png" alt="組合關鍵字的頁面：展開後的語法、組合方式、query_string、留言" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-detail-dark.png">
+    <img src="docs/images/screenshot-detail-light.png" alt="組合關鍵字的頁面：展開後的語法、組合方式、query_string、留言" width="100%">
   </picture>
 </p>
 
 ### 修改紀錄和留言
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-history-light.png" alt="一般關鍵字的頁面：留言，以及每次修改加了哪些字" width="100%">
+  <img src="docs/images/screenshot-history-light.png" alt="一般關鍵字的頁面：留言，以及每次修改加了哪些字" width="100%">
 </p>
 
 ### 語法比對
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-compare-light.png" alt="語法比對：左右兩段語法和它們的差異" width="100%">
+  <img src="docs/images/screenshot-compare-light.png" alt="語法比對：左右兩段語法和它們的差異" width="100%">
 </p>
 
 ### 語法說明
@@ -84,13 +87,13 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 說明頁上面有練習區，表格裡的每個例子都可以按一下直接試。
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-guide-light.png" alt="語法說明：練習區和語法表" width="100%">
+  <img src="docs/images/screenshot-guide-light.png" alt="語法說明：練習區和語法表" width="100%">
 </p>
 
 ### 設定
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/NatLee/keyword-vault/main/docs/images/screenshot-settings-light.png" alt="設定：個人資料、密碼、群組、帳號管理" width="100%">
+  <img src="docs/images/screenshot-settings-light.png" alt="設定：個人資料、密碼、群組、帳號管理" width="100%">
 </p>
 
 ## 快速開始
@@ -103,7 +106,7 @@ docker compose up -d --build
 1. 打開 <http://localhost:8686>。
 2. 第一次會請你建立管理員帳號（密碼至少 8 個字元）。
 3. 到「設定」新增其他人的帳號，需要的話建立群組。
-4. 到「關鍵字」按「新增關鍵字」，或用「匯入」一次放進一批。
+4. 到「語法庫」按「新增關鍵字」，或用「匯入」一次放進一批。
 
 想先看有資料的樣子，可以在**空的資料庫**裡放範例資料（4 個帳號、39 個關鍵字，內容都是虛構的）：
 
@@ -127,8 +130,8 @@ docker compose exec keyword-vault keyword-vault reset-password <帳號>
 | `a\|b` | 出現其中一個 | `"a" OR "b"` |
 | `a!b` | 有 a 但不能有 b | `"a" NOT "b"` |
 | `(a\|b)&c` | 先算括號裡的 | `("a" OR "b") AND "c"` |
-| `(a b ~)` | a 和 b 相距 20 個字以內 | `("a b"~20)` |
-| `(a b ~5)` | 相距 5 個字以內 | `("a b"~5)` |
+| `(a b ~)` | 片語 slop 為 20（詞位移，非字數） | `("a b"~20)` |
+| `(a b ~5)` | 自訂片語 slop 為 5 | `("a b"~5)` |
 | `\&` `\|` `\!` `\~` `\(` `\)` | 這個字本身 | |
 
 全形的 `＆｜！（）` 會自動當成半形。運算子照寫的順序送出去，不會自動排優先順序，`&` 和 `|` 混用時請加括號。
@@ -162,7 +165,8 @@ docker compose exec keyword-vault keyword-vault reset-password <帳號>
 | `KV_DATABASE_PATH` | `<KV_DATA_DIR>/keyword-vault.db` | 資料庫檔案 |
 | `KV_STATIC_DIR` | `src/web/dist`（映像檔裡是 `/app/web`） | 前端檔案的位置 |
 
-資料都在 `keyword-vault-data` 這個 volume 的 SQLite 檔案裡，備份那個檔案就好。
+資料在 `keyword-vault-data` volume。建議先停止服務再複製整個資料目錄；
+若要在線上備份，使用 SQLite backup API，避免漏掉 WAL 中尚未合併的資料。
 
 ## 開發
 
@@ -183,6 +187,22 @@ bash docs/smoke-test.sh http://127.0.0.1:8686   # 對一個空的執行個體跑
 ```
 
 API 文件在 [docs/api.md](docs/api.md)。
+
+## 驗證與畫面重現
+
+所有截圖都來自內建的虛構 demo 資料。可在隔離的 demo 執行個體上執行：
+
+```bash
+python -m pip install playwright
+python -m playwright install chromium
+KV_QA_URL=http://localhost:5173 KV_QA_PASSWORD='<demo password>' python docs/capture-ui.py
+```
+
+腳本會驗證登入、搜尋、收藏、新增、語法錯誤、手機導覽及登出，並更新畫面。
+它會新增一筆測試語法後刪除，請只對 demo 資料庫執行。
+[設計與稽核記錄](docs/design-and-audit.md) 包含測試結果與限制。
+
+![手機版語法庫](docs/images/screenshot-mobile-light.png)
 
 ## 授權
 

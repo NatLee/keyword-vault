@@ -78,6 +78,7 @@ message in English (`message()`, also `Display`) and Traditional Chinese
 | `*` | `LoneWildcard` |
 | `a**` | `ConsecutiveWildcards` |
 | a comma, when `Comma::Reject` is set | `Comma` |
+| more than 128 nested groups | `NestingTooDeep` |
 
 ## Commas
 

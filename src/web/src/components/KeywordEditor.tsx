@@ -313,7 +313,7 @@ export function KeywordEditor({
               onChange={(e) => setExpression(e.target.value)}
             />
             <p className="hint">
-              <code>&amp;</code> 而且、<code>|</code> 或、<code>!</code> 排除、<code>(a b ~5)</code> 兩個詞相距 5 個字以內。
+              <code>&amp;</code> 而且、<code>|</code> 或、<code>!</code> 排除、<code>(a b ~5)</code> 片語 slop 設為 5（非字數）。
             </p>
           </div>
         )}

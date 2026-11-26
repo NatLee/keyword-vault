@@ -52,7 +52,8 @@ function useFilter() {
 
 function KeywordRow({ keyword, onFavorite }: { keyword: Keyword; onFavorite: () => void }) {
   return (
-    <li className="flex gap-2 px-4 py-3.5 sm:px-5">
+    <li className="keyword-record flex gap-3 px-4 py-4 sm:px-5">
+      <span className="record-index" aria-hidden="true">{String(keyword.id).padStart(3, "0")}</span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <Link to={`/keywords/${keyword.id}`} className="font-medium hover:text-brand-700 dark:hover:text-brand-300">
@@ -63,7 +64,7 @@ function KeywordRow({ keyword, onFavorite }: { keyword: Keyword; onFavorite: () 
             <TagLink key={t} tag={t} />
           ))}
         </div>
-        <Link to={`/keywords/${keyword.id}`} className="mt-1.5 block text-zinc-600 dark:text-zinc-300" tabIndex={-1}>
+        <Link to={`/keywords/${keyword.id}`} className="record-expression mt-2 block text-zinc-700 dark:text-zinc-200" tabIndex={-1}>
           <Expression value={keyword.expression} clamp />
         </Link>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-xs text-zinc-500 dark:text-zinc-400">
@@ -128,8 +129,8 @@ export function Keywords() {
   return (
     <PageBody>
       <PageHeader
-        title="關鍵字"
-        subtitle="你自己的，加上別人分享給你的。"
+        title="語法庫"
+        subtitle="收藏值得重用的搜尋語法。搜尋主題、挑選標籤，或組合下一個查詢。"
         actions={
           <>
             <button className="btn btn-secondary" onClick={() => setImporting(true)}>
@@ -145,7 +146,7 @@ export function Keywords() {
         }
       />
 
-      <div className="card mb-4 flex flex-col gap-3 p-3 sm:p-4">
+      <div className="library-filters card mb-5 flex flex-col gap-4 p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
           <label className="relative min-w-52 flex-1">
             <span className="sr-only">搜尋</span>
@@ -232,6 +233,7 @@ export function Keywords() {
       {loading && !data && <Loading />}
       {data && (
         <section className={`card ${loading ? "opacity-70" : ""}`}>
+          <div className="library-caption"><span>EXPRESSION INDEX</span><span>{data.total.toLocaleString()} 個語法 / {filter.sort === "theme" ? "依主題" : filter.sort === "created" ? "最近新增" : "最近更新"}</span></div>
           {data.items.length === 0 ? (
             <Empty icon={KeyRound} title={filtered ? "沒有符合條件的關鍵字" : "還沒有關鍵字"}>
               {filtered ? "換個搜尋的字，或把篩選條件拿掉。" : "按右上角的「新增關鍵字」寫第一個，或從 CSV 匯入。"}
