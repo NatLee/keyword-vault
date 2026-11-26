@@ -124,10 +124,10 @@ impl Query {
         out
     }
 
-    /// Returns the query restricted by `filter`: `<filter> AND (<self>)`.
+    /// Returns the query restricted by `filter`: `(<filter>) AND (<self>)`.
     pub fn filtered_by(&self, filter: &Query) -> String {
         format!(
-            "{} AND ({})",
+            "({}) AND ({})",
             filter.to_query_string(),
             self.to_query_string()
         )

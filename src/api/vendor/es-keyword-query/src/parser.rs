@@ -2,6 +2,9 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::{Comma, Error, ErrorKind, Item, Joiner, Link, Node, Options};
 
+// Bound recursion for untrusted expressions; accepted trees are also safe to walk/drop.
+const MAX_DEPTH: usize = 128;
+
 const ESCAPABLE: &[char] = &['&', '|', '!', '~', '(', ')', '\\'];
 
 pub(crate) fn parse(input: &str, options: &Options) -> Result<Vec<Item>, Error> {
@@ -64,6 +67,9 @@ impl Parser {
 
     /// Parses operands and operators until `)`, a splitting comma or the end.
     fn sequence(&mut self, depth: usize) -> Result<(Vec<Item>, End), Error> {
+        if depth > MAX_DEPTH {
+            return self.err(ErrorKind::NestingTooDeep);
+        }
         let mut items: Vec<Item> = Vec::new();
         let mut link: Option<Link> = None;
         let mut negated = false;

@@ -3,6 +3,8 @@ use std::fmt;
 /// What is wrong with a keyword expression.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorKind {
+    /// More than 128 nested groups.
+    NestingTooDeep,
     /// The input, or a pair of parentheses, has nothing in it.
     Empty,
     /// A comma was used while [`Comma::Reject`](crate::Comma::Reject) is set,
@@ -40,6 +42,7 @@ impl Error {
     /// The message in Traditional Chinese.
     pub fn message_zh(&self) -> &'static str {
         match self.kind {
+            ErrorKind::NestingTooDeep => "括號巢狀深度不可超過 128 層",
             ErrorKind::Empty => "禁止空字串",
             ErrorKind::Comma => "不可使用逗點",
             ErrorKind::ConsecutiveWildcards => "不可有連續的萬用字元(*)",
@@ -55,6 +58,7 @@ impl Error {
     /// The message in English.
     pub fn message(&self) -> &'static str {
         match self.kind {
+            ErrorKind::NestingTooDeep => "parentheses nesting exceeds 128 levels",
             ErrorKind::Empty => "the query is empty",
             ErrorKind::Comma => "a comma is not allowed here",
             ErrorKind::ConsecutiveWildcards => "consecutive wildcards (*) are not allowed",

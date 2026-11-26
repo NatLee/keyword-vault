@@ -242,6 +242,9 @@ pub async fn list(
         .unwrap_or(DEFAULT_PAGE_SIZE)
         .clamp(1, MAX_PAGE_SIZE);
     let page = p.page.unwrap_or(1).max(1);
+    let offset = (page - 1)
+        .checked_mul(page_size)
+        .ok_or_else(|| AppError::bad("頁碼太大"))?;
 
     let mut count = QueryBuilder::new("SELECT COUNT(*) FROM keywords k WHERE ");
     push_filters(&mut count, &user, &p)?;
@@ -253,7 +256,7 @@ pub async fn list(
     qb.push(" LIMIT ")
         .push_bind(page_size)
         .push(" OFFSET ")
-        .push_bind((page - 1) * page_size);
+        .push_bind(offset);
     let rows = qb
         .build_query_as::<KeywordRow>()
         .fetch_all(&state.db)
@@ -364,6 +367,8 @@ async fn resolve_logic(
     if expanded.chars().count() > MAX_EXPANDED_CHARS {
         return Err(AppError::bad("組合之後的關鍵字太長了"));
     }
+    es_keyword_query::validate(&expanded)
+        .map_err(|err| AppError::bad(format!("組合之後的語法有誤：{}", err.message_zh())))?;
     Ok((logic, expanded))
 }
 
@@ -558,6 +563,12 @@ async fn cascade(conn: &mut SqliteConnection, id: i64, editor: i64, at: &str) ->
                     "這樣改的話，組合關鍵字「{theme}」會太長"
                 )));
             }
+            es_keyword_query::validate(&expanded).map_err(|err| {
+                AppError::bad(format!(
+                    "組合關鍵字「{theme}」無法更新：{}",
+                    err.message_zh()
+                ))
+            })?;
             record_history(conn, *target, &old, editor, at).await?;
             sqlx::query("UPDATE keywords SET expression = ?, updated_at = ? WHERE id = ?")
                 .bind(expanded)
