@@ -117,6 +117,7 @@ export function Dashboard() {
         }
       />
       <section className="workbench-intro"><div><p className="eyebrow">COLLECT. COMPOSE. REFINE.</p><h2>每一個查詢，<br />都有值得留下的語法。</h2><Link to="/keywords" className="workbench-link">開啟語法庫 <span>↗</span></Link></div><div className="workbench-example"><span className="eyebrow">THE LANGUAGE OF SEARCH</span><p><code>關鍵字 <b>&amp;</b> 洞察<br />(收集 <b>|</b> 重用) <b>!</b> 雜訊</code></p><Link to="/guide">四個運算子，組出精準查詢 →</Link></div></section>
+      <Link to="/inspect" className="anatomy-invitation"><div><span className="eyebrow">NEW / QUERY ANATOMY</span><h2>一句語法，拆成可理解的條件。</h2><p>載入收藏的查詢 → 看群組與排除 → 試寫並另存新版本</p></div><div className="invitation-branches" aria-hidden="true"><span>查詢</span><b>├─ <i>茶 | 咖啡</i></b><b>└─ <em>NOT 業配</em></b></div><span className="invitation-arrow">↗</span></Link>
       {error && <ErrorBanner message={error} />}
       {loading && !data && <Loading />}
       {data && (

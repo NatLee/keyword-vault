@@ -65,6 +65,7 @@ export interface Linked {
 export interface KeywordDetail extends Keyword {
   query_string: string;
   terms: string[];
+  clauses: Clause[];
   refs: Linked[];
   dependents: Linked[];
 }
@@ -135,8 +136,18 @@ export interface Stats {
   today: Keyword | null;
 }
 
+export interface Clause {
+  parent: number | null;
+  kind: "term" | "proximity" | "group";
+  joiner: "AND" | "OR" | null;
+  negated: boolean;
+  text: string | null;
+  slop: number | null;
+  output: string | null;
+}
+
 export type CheckResult =
-  | { valid: true; query_string: string; terms: string[] }
+  | { valid: true; query_string: string; terms: string[]; clauses: Clause[] }
   | { valid: false; error: { message: string; position: number } };
 
 export interface DiffSegment {

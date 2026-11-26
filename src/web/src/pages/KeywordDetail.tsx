@@ -5,6 +5,7 @@ import { api } from "../api";
 import { CopyButton, DiffView, Expression } from "../components/Expression";
 import { FavoriteButton, KeywordBadges, TagLink } from "../components/KeywordBits";
 import { KeywordEditor } from "../components/KeywordEditor";
+import { QueryAnatomy } from "../components/QueryAnatomy";
 import { PageBody } from "../components/Layout";
 import { Dialog, ErrorBanner, Loading, PageHeader, Spinner, useToast } from "../components/ui";
 import { dateTime, timeAgo } from "../lib/format";
@@ -304,6 +305,7 @@ export function KeywordDetailPage() {
         }
         actions={
           <>
+            <Link className="btn btn-secondary" to={`/inspect?keyword=${keyword.id}`}><Combine className="size-4" /> 拆解與試寫</Link>
             <FavoriteButton favorite={keyword.favorite} onToggle={() => void toggleFavorite()} withLabel />
             {keyword.can_edit && (
               <button className="btn btn-secondary" onClick={() => setEditing(true)}>
@@ -319,7 +321,8 @@ export function KeywordDetailPage() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="mb-6"><QueryAnatomy key={`${keyword.id}:${keyword.expression}`} clauses={keyword.clauses} /></div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <section className="card p-4 sm:p-5">
             <div className="mb-2 flex items-center justify-between">

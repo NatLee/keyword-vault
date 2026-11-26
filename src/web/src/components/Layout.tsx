@@ -28,6 +28,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: "/", label: "工作台", icon: LayoutDashboard, end: true },
   { to: "/keywords", label: "語法庫", icon: KeyRound },
+  { to: "/inspect", label: "語法解剖", icon: GitCompareArrows },
   { to: "/compare", label: "語法比對", icon: GitCompareArrows },
   { to: "/guide", label: "語法說明", icon: BookOpen },
   { to: "/settings", label: "設定", icon: Settings },

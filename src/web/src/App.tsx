@@ -9,6 +9,7 @@ import { KeywordDetailPage } from "./pages/KeywordDetail";
 import { Keywords } from "./pages/Keywords";
 import { Login } from "./pages/Login";
 import { Settings } from "./pages/Settings";
+import { Inspector } from "./pages/Inspector";
 
 export function App() {
   const { auth, authError } = useApp();
@@ -28,6 +29,7 @@ export function App() {
         <Route path="keywords" element={<Keywords />} />
         <Route path="keywords/:id" element={<KeywordDetailPage />} />
         <Route path="compare" element={<Compare />} />
+        <Route path="inspect" element={<Inspector />} />
         <Route path="guide" element={<Guide />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />

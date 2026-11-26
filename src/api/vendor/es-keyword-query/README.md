@@ -94,3 +94,5 @@ cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test
 ## License
 
 [MIT](LICENSE) © 2022 Nat Lee
+
+`Query::clauses()` exposes a preorder inspection of explicit grouping, joins, direct exclusion, normalized terms and resolved slop. This source and its regression tests are mirrored from the standalone crate.

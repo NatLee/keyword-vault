@@ -1,3 +1,5 @@
+> Historical notes for the first visual pass. The current anatomy desk is documented in [visual-insights.md](visual-insights.md).
+
 # Keyword Vault: expression workspace
 
 The interface is built around the work of collecting and reusing search syntax.

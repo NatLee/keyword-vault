@@ -1,6 +1,6 @@
 //! 關鍵字語法的檢查、編譯和比對。語法本身由 `es-keyword-query` 解析。
 
-use es_keyword_query::{Error, Options, Query};
+use es_keyword_query::{ClauseKind, Error, Joiner, Options, Query};
 use serde::Serialize;
 use similar::{ChangeTag, TextDiff};
 
@@ -9,11 +9,24 @@ pub const MAX_EXPRESSION_CHARS: usize = 5_000;
 /// 組合關鍵字展開後的長度上限（字元）。
 pub const MAX_EXPANDED_CHARS: usize = 50_000;
 
+/// The Rust parser's explicit grouping, serialized without inferred precedence.
+#[derive(Debug, Serialize)]
+pub struct Clause {
+    parent: Option<usize>,
+    kind: &'static str,
+    joiner: Option<&'static str>,
+    negated: bool,
+    text: Option<String>,
+    slop: Option<u32>,
+    output: Option<String>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct Compiled {
     pub query_string: String,
     /// 語法裡出現的每個詞，照出現順序。
     pub terms: Vec<String>,
+    pub clauses: Vec<Clause>,
 }
 
 pub fn compile(expression: &str, default_slop: u32, precise: bool) -> Result<Compiled, Error> {
@@ -26,6 +39,26 @@ pub fn compile(expression: &str, default_slop: u32, precise: bool) -> Result<Com
     Ok(Compiled {
         query_string: query.to_query_string(),
         terms: query.terms().into_iter().map(str::to_owned).collect(),
+        clauses: query
+            .clauses()
+            .into_iter()
+            .map(|c| Clause {
+                parent: c.parent,
+                kind: match c.kind {
+                    ClauseKind::Term => "term",
+                    ClauseKind::Proximity => "proximity",
+                    ClauseKind::Group => "group",
+                },
+                joiner: c.joiner.map(|j| match j {
+                    Joiner::And => "AND",
+                    Joiner::Or => "OR",
+                }),
+                negated: c.negated,
+                text: c.text,
+                slop: c.slop,
+                output: c.output,
+            })
+            .collect(),
     })
 }
 

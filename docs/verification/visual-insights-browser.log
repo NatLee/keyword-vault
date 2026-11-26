@@ -1,0 +1,9 @@
+{
+  "checks": [
+    "load saved expression through authenticated API",
+    "invalid draft hides anatomy; private copy preserves original",
+    "existing editor previews and persists actual saved-query edits",
+    "desktop/mobile/dark, node selection and responsive navigation"
+  ],
+  "page_errors": []
+}

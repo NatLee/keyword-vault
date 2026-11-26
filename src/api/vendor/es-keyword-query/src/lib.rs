@@ -53,6 +53,39 @@ pub enum Joiner {
     Or,
 }
 
+/// The kind of a node in an inspected query.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClauseKind {
+    /// An ordinary term, including literal escaped operators.
+    Term,
+    /// A phrase with a slop value.
+    Proximity,
+    /// An explicit group (or a group introduced by comma splitting).
+    Group,
+}
+
+/// One node of a query, returned in preorder by [`Query::clauses`].
+///
+/// This describes written structure, not the search engine's Boolean precedence.
+/// `negated` belongs to this node; children of an excluded group do not repeat it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Clause {
+    /// Index of the containing group in the returned list; `None` at the root.
+    pub parent: Option<usize>,
+    /// The node's kind.
+    pub kind: ClauseKind,
+    /// Operator before this node; exclusions may have no explicit joiner.
+    pub joiner: Option<Joiner>,
+    /// Whether `!` directly excludes this node.
+    pub negated: bool,
+    /// Normalized, unescaped term or phrase. Groups have no text.
+    pub text: Option<String>,
+    /// Resolved phrase slop, including the configured default.
+    pub slop: Option<u32>,
+    /// Exact compiled leaf text, without its joiner or exclusion. Groups have none.
+    pub output: Option<String>,
+}
+
 /// Parsing and output options.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Options {
@@ -150,6 +183,53 @@ impl Query {
         out
     }
 
+    /// Inspects explicit grouping and ordered clauses without parsing again.
+    ///
+    /// Parent indices always precede their children. Leaf output uses this query's
+    /// precise/raw and default-slop options. No inferred operator precedence is added.
+    pub fn clauses(&self) -> Vec<Clause> {
+        fn walk(query: &Query, items: &[Item], parent: Option<usize>, out: &mut Vec<Clause>) {
+            for item in items {
+                let (kind, text, slop) = match &item.node {
+                    Node::Group(_) => (ClauseKind::Group, None, None),
+                    Node::Term(text) => (ClauseKind::Term, Some(text.clone()), None),
+                    Node::Near { phrase, slop } => (
+                        ClauseKind::Proximity,
+                        Some(phrase.clone()),
+                        Some(slop.unwrap_or(query.options.default_slop)),
+                    ),
+                };
+                let output = if kind == ClauseKind::Group {
+                    None
+                } else {
+                    let mut text = String::new();
+                    query.write_node(&item.node, &mut text);
+                    Some(text)
+                };
+                let index = out.len();
+                out.push(Clause {
+                    parent,
+                    kind,
+                    text,
+                    slop,
+                    output,
+                    negated: item.negated,
+                    joiner: match item.link {
+                        Link::None => None,
+                        Link::And => Some(Joiner::And),
+                        Link::Or => Some(Joiner::Or),
+                    },
+                });
+                if let Node::Group(children) = &item.node {
+                    walk(query, children, Some(index), out);
+                }
+            }
+        }
+        let mut out = Vec::new();
+        walk(self, &self.items, None, &mut out);
+        out
+    }
+
     fn write_items(&self, items: &[Item], out: &mut String) {
         for (i, item) in items.iter().enumerate() {
             match (item.link, item.negated) {
@@ -161,18 +241,22 @@ impl Query {
                 (Link::Or, false) => out.push_str(" OR "),
                 (Link::Or, true) => out.push_str(" OR NOT "),
             }
-            match &item.node {
-                Node::Term(t) => self.write_term(t, out),
-                Node::Near { phrase, slop } => {
-                    write_quoted(phrase, out);
-                    out.push('~');
-                    out.push_str(&slop.unwrap_or(self.options.default_slop).to_string());
-                }
-                Node::Group(inner) => {
-                    out.push('(');
-                    self.write_items(inner, out);
-                    out.push(')');
-                }
+            self.write_node(&item.node, out);
+        }
+    }
+
+    fn write_node(&self, node: &Node, out: &mut String) {
+        match node {
+            Node::Term(t) => self.write_term(t, out),
+            Node::Near { phrase, slop } => {
+                write_quoted(phrase, out);
+                out.push('~');
+                out.push_str(&slop.unwrap_or(self.options.default_slop).to_string());
+            }
+            Node::Group(inner) => {
+                out.push('(');
+                self.write_items(inner, out);
+                out.push(')');
             }
         }
     }

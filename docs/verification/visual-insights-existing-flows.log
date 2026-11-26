@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "UI login through development proxy",
+    "search returns matching expression",
+    "favorite toggles and persists through API",
+    "create from editor and live syntax validation",
+    "invalid syntax feedback",
+    "mobile /",
+    "mobile /keywords",
+    "mobile /keywords/33",
+    "mobile /compare",
+    "mobile /guide",
+    "mobile /settings",
+    "mobile navigation and theme",
+    "mobile login",
+    "logout"
+  ],
+  "page_errors": [],
+  "screenshots": 17
+}

@@ -132,3 +132,17 @@
 curl -b cookies.txt -H 'content-type: application/json' \
   -d '{"expression":"(珍珠奶茶|(珍珠 鮮奶 ~))&手搖!廣告"}' http://localhost:8686/api/tools/check
 ```
+
+## 語法結構（解剖工作台）
+
+成功的 `POST /api/tools/check` 與 `GET /api/keywords/:id` 現在另回傳 `clauses`。
+這是 Rust 解析樹的前序清單；每個節點包含：
+
+- `parent`：所屬群組在清單的索引，最外層為 `null`。
+- `kind`：`term`、`proximity` 或 `group`。
+- `joiner`：前接 `AND`、`OR` 或 `null`；`negated` 表示此節點直接有 `!`。
+- `text`：正規化後的詞彙／片語；群組為 `null`。
+- `slop`：片語實際使用的 slop；其他節點為 `null`。
+- `output`：單一詞彙／片語的編譯文字，不含前接運算子和排除；群組為 `null`。
+
+父節點一定先於子節點。排除群組的子節點不重複標記 `negated`。此資料只描述寫入的括號與順序，不加入搜尋引擎的運算子優先順序。無效語法回應不含 `clauses`。

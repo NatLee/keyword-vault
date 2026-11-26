@@ -33,6 +33,7 @@ pub async fn check(
                 "valid": true,
                 "query_string": compiled.query_string,
                 "terms": compiled.terms,
+                "clauses": compiled.clauses,
             }),
             Err(err) => json!({
                 "valid": false,
