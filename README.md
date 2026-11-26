@@ -29,6 +29,25 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 標籤篩選。暖灰紙面、墨綠底色與琥珀運算子搭配自動或手動的深淺色模式；
 手機上工具導覽收進選單，語法會換行而不把畫面撐寬。
 
+## 語法解剖工作台
+
+從導覽列開啟「語法解剖」，或在任何語法詳情按「拆解與試寫」。左側可搜尋自己有權限讀取的語法，載入後在草稿裡調整，再逐一選取群組、詞彙或排除節點。
+
+圖與編譯結果都來自 Rust API：前端不另寫解析器，也不推測 AND／OR 優先順序。等待新結果或語法有錯時，舊圖會清除。草稿可另存為私人語法；組合語法會以當時的展開內容另存一般語法。原始查詢不會因試寫而變更。
+
+![語法解剖：載入、編輯與檢視群組](docs/images/screenshot-inspector-light.png)
+
+- 點選節點，查看所屬群組、直接排除、群組內排除與片語 slop。
+- 詳情頁也有同一份結構圖；既有編輯器可展開結構預覽後儲存修改。
+- 大型語法預覽前 80 個節點（編輯器 24 個）；完整語法與編譯結果仍可閱讀與複製。
+
+<details><summary>深色與手機解剖工作台</summary>
+
+![深色語法解剖](docs/images/screenshot-inspector-dark.png)
+<img src="docs/images/screenshot-inspector-mobile.png" alt="手機語法解剖" width="390">
+
+</details>
+
 ## 功能
 
 - **語法即時檢查**：邊打邊檢查，錯在第幾個字元直接告訴你；正確時顯示轉出來的 `query_string`，可以一鍵複製。
@@ -196,10 +215,12 @@ API 文件在 [docs/api.md](docs/api.md)。
 python -m pip install playwright
 python -m playwright install chromium
 KV_QA_URL=http://localhost:5173 KV_QA_PASSWORD='<demo password>' python docs/capture-ui.py
+KV_QA_URL=http://localhost:5173 KV_QA_PASSWORD='<demo password>' python docs/capture-insights.py
 ```
 
 腳本會驗證登入、搜尋、收藏、新增、語法錯誤、手機導覽及登出，並更新畫面。
-它會新增一筆測試語法後刪除，請只對 demo 資料庫執行。
+兩個腳本會新增測試語法後刪除，請只對 demo 資料庫執行。
+[語法解剖設計與驗證](docs/visual-insights.md) 包含結構 API 與新版互動流程。
 [設計與稽核記錄](docs/design-and-audit.md) 包含測試結果與限制。
 
 ![手機版語法庫](docs/images/screenshot-mobile-light.png)

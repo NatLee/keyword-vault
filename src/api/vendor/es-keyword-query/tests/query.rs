@@ -207,3 +207,42 @@ fn reference_examples_match_the_compiler() {
         assert_eq!(Query::parse(input).unwrap().to_query_string(), output);
     }
 }
+
+#[test]
+fn clauses_preserve_structure_without_inventing_precedence() {
+    use es_keyword_query::ClauseKind;
+    let q = Query::parse("(tea|coffee)&shop!(paid ad ~5)").unwrap();
+    let nodes = q.clauses();
+    assert_eq!(nodes.len(), 6);
+    assert_eq!(nodes[0].kind, ClauseKind::Group);
+    assert_eq!(nodes[1].parent, Some(0));
+    assert_eq!(nodes[2].parent, Some(0));
+    assert_eq!(nodes[2].joiner, Some(Joiner::Or));
+    assert_eq!(nodes[3].joiner, Some(Joiner::And));
+    assert_eq!(nodes[3].parent, None);
+    assert!(nodes[4].negated);
+    assert_eq!(nodes[5].parent, Some(4));
+    assert_eq!(nodes[5].slop, Some(5));
+    assert_eq!(nodes[5].output.as_deref(), Some(r#""paid ad"~5"#));
+    assert!(nodes[0].output.is_none());
+}
+
+#[test]
+fn clauses_use_normalized_terms_and_the_actual_output_options() {
+    use es_keyword_query::ClauseKind;
+    let q = Query::parse_with(
+        "（ＡＴ\\＆Ｔ｜tea）&(apple pie ~)",
+        Options {
+            precise: false,
+            default_slop: 9,
+            ..Options::default()
+        },
+    )
+    .unwrap();
+    let nodes = q.clauses();
+    assert_eq!(nodes[1].text.as_deref(), Some("AT&T"));
+    assert_eq!(nodes[1].output.as_deref(), Some("AT&T"));
+    assert_eq!(nodes[4].kind, ClauseKind::Proximity);
+    assert_eq!(nodes[4].slop, Some(9));
+    assert_eq!(nodes[4].output.as_deref(), Some(r#""apple pie"~9"#));
+}

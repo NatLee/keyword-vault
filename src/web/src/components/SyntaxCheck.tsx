@@ -9,13 +9,16 @@ import { Spinner } from "./ui";
 /** 邊打邊檢查語法。`expression` 是空的時候不檢查。 */
 export function useCheck(expression: string, precise = true) {
   const debounced = useDebounced(expression, 250);
-  const [result, setResult] = useState<CheckResult | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
+  const [settled, setSettled] = useState<{
+    expression: string;
+    precise: boolean;
+    result: CheckResult | null;
+    failure: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!debounced.trim()) {
-      setResult(null);
-      setFailure(null);
+      setSettled(null);
       return;
     }
     let stale = false;
@@ -23,20 +26,38 @@ export function useCheck(expression: string, precise = true) {
       .check(debounced, precise)
       .then((r) => {
         if (stale) return;
-        setResult(r);
-        setFailure(null);
+        setSettled({
+          expression: debounced,
+          precise,
+          result: r,
+          failure: null,
+        });
       })
       .catch((e) => {
         if (stale) return;
-        setResult(null);
-        setFailure(errorText(e));
+        setSettled({
+          expression: debounced,
+          precise,
+          result: null,
+          failure: errorText(e),
+        });
       });
     return () => {
       stale = true;
     };
   }, [debounced, precise]);
 
-  return { result, failure, pending: debounced !== expression };
+  const current =
+    expression.trim() &&
+    settled?.expression === expression &&
+    settled.precise === precise
+      ? settled
+      : null;
+  return {
+    result: current?.result ?? null,
+    failure: current?.failure ?? null,
+    pending: Boolean(expression.trim()) && current === null,
+  };
 }
 
 /** 檢查結果：正確時顯示送給搜尋引擎的 query_string，錯誤時說哪裡錯。 */
@@ -65,7 +86,10 @@ export function CheckResultView({
   }
   if (!result.valid) {
     return (
-      <p role="status" className="flex items-center gap-1.5 text-sm text-rose-700 dark:text-rose-300">
+      <p
+        role="status"
+        className="flex items-center gap-1.5 text-sm text-rose-700 dark:text-rose-300"
+      >
         <CircleAlert className="size-4 shrink-0" />
         {result.error.message}（第 {result.error.position + 1} 個字元）
       </p>
@@ -75,7 +99,8 @@ export function CheckResultView({
     <div role="status" className={pending ? "opacity-60" : ""}>
       <div className="flex items-center justify-between gap-2">
         <p className="flex items-center gap-1.5 text-sm text-emerald-700 dark:text-emerald-400">
-          <CircleCheck className="size-4 shrink-0" /> 語法正確，會送出這段 query_string
+          <CircleCheck className="size-4 shrink-0" /> 語法正確，會送出這段
+          query_string
         </p>
         <CopyButton text={result.query_string} />
       </div>

@@ -786,6 +786,7 @@ pub struct Detail {
     keyword: Keyword,
     query_string: String,
     terms: Vec<String>,
+    clauses: Vec<syntax::Clause>,
     /// 這個組合關鍵字用到的關鍵字
     refs: Vec<Linked>,
     /// 直接用到這個關鍵字的組合關鍵字
@@ -803,6 +804,7 @@ pub async fn detail(
     Ok(Json(Detail {
         query_string: compiled.query_string,
         terms: compiled.terms,
+        clauses: compiled.clauses,
         refs: linked(&state.db, user.id, id, false).await?,
         dependents: linked(&state.db, user.id, id, true).await?,
         keyword,

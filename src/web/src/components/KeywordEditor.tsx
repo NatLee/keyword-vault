@@ -7,6 +7,7 @@ import type { Keyword, KeywordInput, Visibility } from "../types";
 import { Expression } from "./Expression";
 import { CheckResultView, useCheck } from "./SyntaxCheck";
 import { Dialog, ErrorBanner, Spinner, useToast } from "./ui";
+import { QueryAnatomy } from "./QueryAnatomy";
 
 const VISIBILITIES: Visibility[] = ["private", "group", "public"];
 
@@ -214,8 +215,7 @@ export function KeywordEditor({
 
   const check = useCheck(combination ? (expanded ?? "") : expression);
   const body = combination ? logic.trim() : expression.trim();
-  const invalid = check.result !== null && !check.result.valid;
-  const canSave = theme.trim() !== "" && body !== "" && !invalid && !busy;
+  const canSave = theme.trim() !== "" && body !== "" && check.result?.valid === true && !check.pending && !busy;
 
   const save = async () => {
     setBusy(true);
@@ -327,6 +327,7 @@ export function KeywordEditor({
           </div>
         )}
         <CheckResultView {...check} />
+        {check.result?.valid && <details className="editor-anatomy"><summary>拆開查看語法結構</summary><QueryAnatomy clauses={check.result.clauses} compact /></details>}
 
         <div>
           <p className="label">分享範圍</p>

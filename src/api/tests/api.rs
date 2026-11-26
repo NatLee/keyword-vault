@@ -954,6 +954,36 @@ async fn overflowing_page_offset_returns_bad_request() {
 }
 
 #[tokio::test]
+async fn anatomy_uses_the_parser_and_requires_authentication() {
+    let t = TestApp::new().await;
+    let expression = "(tea|coffee)&shop!(paid ad ~5)";
+    let body = Some(json!({"expression": expression}));
+    let (status, _) = t
+        .call(None, Method::POST, "/api/tools/check", body.clone())
+        .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    let admin = t.admin().await;
+    let (status, result) = t
+        .call(Some(&admin), Method::POST, "/api/tools/check", body)
+        .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(result["clauses"][2]["parent"], 0);
+    assert_eq!(result["clauses"][2]["joiner"], "OR");
+    assert_eq!(result["clauses"][4]["negated"], true);
+    assert_eq!(result["clauses"][5]["slop"], 5);
+    let (_, invalid) = t
+        .call(
+            Some(&admin),
+            Method::POST,
+            "/api/tools/check",
+            Some(json!({"expression":"a&&b"})),
+        )
+        .await;
+    assert_eq!(invalid["valid"], false);
+    assert!(invalid.get("clauses").is_none());
+}
+
+#[tokio::test]
 async fn simultaneous_setup_creates_exactly_one_admin() {
     let t = TestApp::new().await;
     let first = t.call(
