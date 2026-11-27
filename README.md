@@ -297,3 +297,14 @@ These are real local workflows with synthetic domain data and the feature-gated 
 ## 授權
 
 [MIT](LICENSE) © Nat Lee
+
+
+## 首次登入與建立管理員
+
+第一次開啟空白安裝時，首頁、登入頁和需要登入的頁面都會自動導向 `/first-login`。輸入 3–32 個英文字母、數字或 `. _ -` 的帳號、選填顯示名稱，以及 8–200 個字元的密碼與確認密碼，按「建立管理員」後即以新管理員身份進入工作空間。密碼不一致時不會送出請求。
+
+這個頁面只用來建立第一位管理員。有帳號的安裝會改顯示 `/login`；其他成員由管理員在既有設定頁新增。若另一位管理員已先完成設定，舊頁面會自動轉成登入。透過 OAuth 登入的合法本站授權流程會在建立帳號後接續進行。
+
+Docker 對外網址請維持 `KV_PUBLIC_URL` 與 `ACCESS_PUBLIC_URL` 同源。操作與實際瀏覽器驗證見 [首次登入驗證紀錄](docs/first-login-verification.md)。
+
+![首次登入頁](docs/images/first-login-1440-light.png)

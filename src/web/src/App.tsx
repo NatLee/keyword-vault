@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { authorizeNext } from "./lib/access";
+import { authorizeNext, providerError } from "./lib/access";
 import { Navigate, Route, Routes, useLocation } from "react-router";
 import { Layout } from "./components/Layout";
 import { ErrorBanner, Loading } from "./components/ui";
@@ -10,6 +10,7 @@ import { Guide } from "./pages/Guide";
 import { KeywordDetailPage } from "./pages/KeywordDetail";
 import { Keywords } from "./pages/Keywords";
 import { Login } from "./pages/Login";
+import { FirstLogin } from "./pages/FirstLogin";
 import { Settings } from "./pages/Settings";
 import { Access } from "./pages/Access";
 import { Consent } from "./pages/Consent";
@@ -20,7 +21,7 @@ function ContinueAuthorization({to}:{to:string}) { useEffect(()=>{window.locatio
 
 export function App() {
   const location=useLocation();
-  const next=location.pathname==="/login"?authorizeNext(location.search):null;
+  const next=authorizeNext(location.search);
   const { auth, authError } = useApp();
   if (!auth) {
     return (
@@ -29,9 +30,20 @@ export function App() {
       </div>
     );
   }
-  // 還沒登入（或還沒有任何帳號）：只有登入頁
-  if (!auth.user) return <Login setupRequired={auth.setup_required} />;
+  if (!auth.user) {
+    const path = auth.setup_required ? "/first-login" : "/login";
+    const params = new URLSearchParams();
+    if (next) params.set("next", next);
+    if (!auth.setup_required && providerError(location.search)) {
+      params.set("access_error", new URLSearchParams(location.search).get("access_error")!);
+    }
+    const search = params.size ? `?${params}` : "";
+    // Canonicalize entry and drop untrusted continuation parameters.
+    if (location.pathname !== path || location.search !== search) return <Navigate to={path + search} replace />;
+    return auth.setup_required ? <FirstLogin /> : <Login />;
+  }
   if(next) return <ContinueAuthorization to={next}/>;
+  if (["/login", "/first-login"].includes(location.pathname)) return <Navigate to="/" replace />;
   return (
     <Routes>
       <Route element={<Layout />}>
