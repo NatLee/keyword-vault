@@ -1,0 +1,8 @@
+{
+  "desktop": "1440 x 1140",
+  "mobile": "390 x 844",
+  "examples": "Boolean, Proximity, Unicode",
+  "theme_toggle": "passed",
+  "horizontal_overflow": false,
+  "page_errors": []
+}

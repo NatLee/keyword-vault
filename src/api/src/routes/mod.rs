@@ -73,6 +73,9 @@ pub fn router(state: AppState) -> Router {
         .route("/tags", get(stats::tags))
         .route("/stats", get(stats::overview))
         .route("/tools/check", post(tools::check))
+        .route("/tools/inspect", post(tools::inspect))
+        .route("/tools/analyze", post(tools::analyze))
+        .route("/compiler/inspect", post(crate::compiler_compat::inspect))
         .route("/tools/diff", post(tools::diff))
         .fallback(|| async { AppError::not_found("找不到這個 API") });
 
@@ -123,6 +126,12 @@ pub(crate) fn access_domain_router(state: AppState) -> Router {
         .route("/keywords", get(keywords::list))
         .route("/keywords/{id}", get(keywords::detail))
         .route("/tools/check", post(tools::check))
+        .route("/tools/inspect", post(tools::inspect))
+        .route("/tools/analyze", post(tools::analyze))
+        .route(
+            "/compiler/{operation}",
+            post(crate::compiler_compat::invoke),
+        )
         .route("/tools/diff", post(tools::diff))
         .with_state(state)
 }

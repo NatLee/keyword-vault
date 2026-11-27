@@ -1,4 +1,5 @@
 # Rust build output
+/target/
 src/api/target/
 
 # Web
@@ -8,7 +9,8 @@ src/web/dist/
 *.tsbuildinfo
 
 # Runtime data: SQLite database
-data/
+/data/*
+!/data/segmentation/
 *.db
 *.db-shm
 *.db-wal

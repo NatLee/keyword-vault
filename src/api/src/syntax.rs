@@ -36,7 +36,11 @@ pub fn compile(expression: &str, default_slop: u32, precise: bool) -> Result<Com
         ..Options::default()
     };
     let query = Query::parse_with(expression, options)?;
-    Ok(Compiled {
+    Ok(describe(&query))
+}
+
+pub fn describe(query: &Query) -> Compiled {
+    Compiled {
         query_string: query.to_query_string(),
         terms: query.terms().into_iter().map(str::to_owned).collect(),
         clauses: query
@@ -59,7 +63,7 @@ pub fn compile(expression: &str, default_slop: u32, precise: bool) -> Result<Com
                 output: c.output,
             })
             .collect(),
-    })
+    }
 }
 
 /// 給使用者看的錯誤訊息，位置從 1 開始算。

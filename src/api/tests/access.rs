@@ -51,6 +51,8 @@ async fn fixture() -> (TempDir, AppState, Router) {
         public_origin: None,
         cookie_secure: false,
         default_slop: 20,
+        segmentation_dict: None,
+        setup_token: None,
     })
     .await
     .unwrap();
@@ -335,6 +337,8 @@ async fn official_stateless_sdk_uses_current_group_visibility_and_counts_each_ca
         public_origin: Some(origin.clone()),
         cookie_secure: false,
         default_slop: 20,
+        segmentation_dict: None,
+        setup_token: None,
     })
     .await
     .unwrap();
@@ -483,4 +487,330 @@ async fn official_stateless_sdk_uses_current_group_visibility_and_counts_each_ca
         .is_err());
     let _ = client.cancel().await;
     server.abort();
+}
+
+#[tokio::test]
+async fn compiler_compatibility_preserves_contracts_scope_and_audits_once() {
+    let (_dir, state, router) = fixture().await;
+    let (_, cookie) = user(&state, "compilerowner", "admin").await;
+    let legacy = key(&router, &cookie, json!(["queries:read"]), json!(["api"])).await;
+    let current = key(
+        &router,
+        &cookie,
+        json!(["expressions:read"]),
+        json!(["api"]),
+    )
+    .await;
+    let (status, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/compile_query",
+        None,
+        Some(&legacy),
+        Some(json!({"expression":"a|b"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(result, json!({"query_string":"\"a\" OR \"b\""}));
+    let (_, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/extract_terms",
+        None,
+        Some(&legacy),
+        Some(json!({"expression":"茶!(廣告|業配)"})),
+    )
+    .await;
+    assert_eq!(result, json!({"terms":["茶","廣告","業配"]}));
+    let (status, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/inspect_query",
+        None,
+        Some(&legacy),
+        Some(json!({"expression":"a&&b"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(!result.to_string().contains("不可"));
+    let (status, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/inspect_expression",
+        None,
+        Some(&current),
+        Some(json!({"expression":"a&&b"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(result["valid"], false);
+    assert!(result["error"]["message"]
+        .as_str()
+        .unwrap()
+        .contains("不可"));
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/v1/compile_query",
+        None,
+        Some(&current),
+        Some(json!({"expression":"tea"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    let attempts: i64 = sqlx::query_scalar("SELECT SUM(attempts) FROM access_daily")
+        .fetch_one(&state.db)
+        .await
+        .unwrap();
+    assert_eq!(
+        attempts, 5,
+        "each authenticated operation attempt is counted once"
+    );
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/compiler/inspect",
+        Some(&cookie),
+        None,
+        Some(json!({"expression":"茶".repeat(40_001)})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/compiler/inspect",
+        Some(&cookie),
+        None,
+        Some(json!({"expression":"tea","unknown":true})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/compiler/inspect",
+        None,
+        None,
+        Some(json!({"expression":"tea"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    let (status, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/inspect_workbench",
+        None,
+        Some(&current),
+        Some(json!({"expression":"tea|coffee","filter_expression":"shop|cafe"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(
+        result["inspection"]["query_string"],
+        r#"("shop" OR "cafe") AND ("tea" OR "coffee")"#
+    );
+}
+
+#[tokio::test]
+async fn chinese_analysis_is_authenticated_bounded_and_scope_limited() {
+    let (_dir, state, router) = fixture().await;
+    let (_, cookie) = user(&state, "analyzer", "admin").await;
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/tools/analyze",
+        None,
+        None,
+        Some(json!({"expression":"臺積電"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    let token = key(
+        &router,
+        &cookie,
+        json!(["expressions:read"]),
+        json!(["api"]),
+    )
+    .await;
+    let (status, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/analyze_expression",
+        None,
+        Some(&token),
+        Some(json!({"expression":"臺積電!廣告"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(result["leaves"][0]["tokens"][0]["text"], "臺積電");
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/v1/analyze_expression",
+        None,
+        Some(&token),
+        Some(json!({"expression":"tea","dictionary_path":"/etc/passwd"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/tools/analyze",
+        Some(&cookie),
+        None,
+        Some(json!({"expression":"title:tea*","precise":false})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn official_mcp_sdk_exercises_consolidated_compiler_and_analysis_operations() {
+    use rmcp::{
+        model::{CallToolRequestParams, ProtocolVersion},
+        transport::{
+            streamable_http_client::StreamableHttpClientTransportConfig,
+            StreamableHttpClientTransport,
+        },
+        ClientLifecycleMode, ClientServiceExt,
+    };
+    use std::future::IntoFuture;
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let origin = format!("http://{}", listener.local_addr().unwrap());
+    let dir = TempDir::new().unwrap();
+    let state = build_state(Config {
+        bind: "127.0.0.1:0".into(),
+        database_path: dir.path().join("test.db"),
+        static_dir: dir.path().join("web"),
+        public_origin: Some(origin.clone()),
+        cookie_secure: false,
+        default_slop: 20,
+        segmentation_dict: None,
+        setup_token: None,
+    })
+    .await
+    .unwrap();
+    let router = app(state.clone());
+    let (_, cookie) = user(&state, "consolidated", "admin").await;
+    let token = key(
+        &router,
+        &cookie,
+        json!(["queries:read", "expressions:read"]),
+        json!(["mcp"]),
+    )
+    .await;
+    let server = tokio::spawn(axum::serve(listener, router).into_future());
+    let client = ()
+        .serve_with_lifecycle(
+            StreamableHttpClientTransport::from_config(
+                StreamableHttpClientTransportConfig::with_uri(format!("{origin}/mcp"))
+                    .auth_header(token),
+            ),
+            ClientLifecycleMode::Discover {
+                preferred_versions: vec![ProtocolVersion::V_2026_07_28],
+            },
+        )
+        .await
+        .unwrap();
+    for (operation, args, field, expected) in [
+        (
+            "compile_query",
+            json!({"expression":"a|b"}),
+            "query_string",
+            json!("\"a\" OR \"b\""),
+        ),
+        (
+            "extract_terms",
+            json!({"expression":"茶!廣告"}),
+            "terms",
+            json!(["茶", "廣告"]),
+        ),
+        (
+            "inspect_query",
+            json!({"expression":"(a b ~)","default_slop":3}),
+            "query_string",
+            json!("(\"a b\"~3)"),
+        ),
+        (
+            "inspect_workbench",
+            json!({"expression":"tea","filter_expression":"shop|cafe"}),
+            "valid",
+            json!(true),
+        ),
+        (
+            "analyze_expression",
+            json!({"expression":"珍珠奶茶","mode":"search"}),
+            "engine",
+            json!("jieba-rs"),
+        ),
+    ] {
+        let result = client
+            .call_tool(
+                CallToolRequestParams::new(operation)
+                    .with_arguments(args.as_object().unwrap().clone()),
+            )
+            .await
+            .unwrap();
+        let value = serde_json::to_value(result).unwrap();
+        assert_ne!(value["isError"], true, "{operation}: {value}");
+        assert_eq!(value["structuredContent"][field], expected);
+    }
+    let attempts: i64 =
+        sqlx::query_scalar("SELECT SUM(attempts) FROM access_daily WHERE transport='mcp'")
+            .fetch_one(&state.db)
+            .await
+            .unwrap();
+    assert_eq!(attempts, 5);
+    for operation in ["compile_query", "inspect_query", "extract_terms"] {
+        let result = client
+            .call_tool(
+                CallToolRequestParams::new(operation)
+                    .with_arguments(json!({"expression":"a&&b"}).as_object().unwrap().clone()),
+            )
+            .await
+            .unwrap();
+        let value = serde_json::to_value(result).unwrap();
+        assert_eq!(value["isError"], true, "{operation}");
+        assert_eq!(
+            value["structuredContent"]["code"], "compile_error",
+            "{operation}: {value}"
+        );
+        assert_eq!(
+            value["structuredContent"]["error"],
+            es_keyword_query::Query::parse("a&&b")
+                .unwrap_err()
+                .to_string()
+        );
+    }
+    client.cancel().await.unwrap();
+    server.abort();
+}
+
+#[tokio::test]
+async fn legacy_compiler_http_parser_errors_keep_machine_code_and_message() {
+    let (_dir, state, router) = fixture().await;
+    let (_, cookie) = user(&state, "legacyerrors", "admin").await;
+    let token = key(&router, &cookie, json!(["queries:read"]), json!(["api"])).await;
+    let expected = es_keyword_query::Query::parse("a&&b")
+        .unwrap_err()
+        .to_string();
+    for operation in ["compile_query", "inspect_query", "extract_terms"] {
+        let (status, result) = call(
+            &router,
+            Method::POST,
+            &format!("/api/v1/{operation}"),
+            None,
+            Some(&token),
+            Some(json!({"expression":"a&&b"})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert_eq!(
+            result,
+            json!({"code":"compile_error", "error":expected}),
+            "{operation}"
+        );
+    }
 }

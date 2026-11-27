@@ -12,14 +12,12 @@ RUN pnpm build
 
 # 2. 後端
 FROM rust:1-trixie AS api
-WORKDIR /workspace/src/api
-COPY src/api/Cargo.toml src/api/Cargo.lock ./
-# 語法解析器（es-keyword-query）跟著原始碼一起放在 vendor/
-COPY crates/access-kit /workspace/crates/access-kit
-COPY src/api/vendor ./vendor
-COPY src/api/migrations ./migrations
-COPY src/api/src ./src
-RUN cargo build --release --locked
+WORKDIR /workspace
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+COPY src/api ./src/api
+COPY data/segmentation ./data/segmentation
+RUN cargo build -p keyword-vault --release --locked --jobs 2
 
 # 3. Internal, nonroot API runtime
 FROM debian:trixie-slim AS runtime
@@ -27,7 +25,7 @@ RUN useradd --uid 10001 --create-home --home-dir /home/app --shell /usr/sbin/nol
     && mkdir -p /app/data \
     && chown app /app/data
 WORKDIR /app
-COPY --from=api /workspace/src/api/target/release/keyword-vault /usr/local/bin/keyword-vault
+COPY --from=api /workspace/target/release/keyword-vault /usr/local/bin/keyword-vault
 ENV KV_BIND=0.0.0.0:8686 \
     KV_DATA_DIR=/app/data \
     KV_STATIC_DIR=/app/web

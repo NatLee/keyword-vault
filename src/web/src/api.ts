@@ -1,7 +1,12 @@
 import type {
   Account,
   AuthState,
+  SetupInput,
   CheckResult,
+  InspectInput,
+  InspectionResult,
+  AnalysisInput,
+  AnalysisResult,
   Comment,
   DiffResult,
   Group,
@@ -83,7 +88,7 @@ export const api = {
 
   authState: () => get<AuthState>("/auth/state"),
   // 顯示名稱沒填就不送，後端會用帳號當名字
-  setup: (input: { username: string; display_name: string; password: string }) =>
+  setup: (input: SetupInput) =>
     post<User>("/auth/setup", { ...input, display_name: input.display_name || undefined }),
   login: (username: string, password: string) => post<User>("/auth/login", { username, password }),
   logout: () => post<void>("/auth/logout"),
@@ -125,5 +130,7 @@ export const api = {
   stats: () => get<Stats>("/stats"),
 
   check: (expression: string, precise = true) => post<CheckResult>("/tools/check", { expression, precise }),
+  inspect: (input: InspectInput) => post<InspectionResult>("/tools/inspect", input),
+  analyze: (input: AnalysisInput) => post<AnalysisResult>("/tools/analyze", input),
   diff: (a: string, b: string) => post<DiffResult>("/tools/diff", { a, b }),
 };

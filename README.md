@@ -80,7 +80,7 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 - **修改紀錄**：每次改語法都留下紀錄，點開就看到改了哪幾個字。
 - **語法比對**：兩段很長的語法貼進去，哪裡不一樣一眼看出來。
 - **標籤、收藏、留言、搜尋**，以及 CSV 匯入和匯出。匯入時每一列都先檢查語法，有一列不對就整批不匯入，並列出每一列的問題。
-- **帳號和群組**：第一個打開網頁的人建立管理員，沒有預設帳號，也沒有預設密碼。密碼用 Argon2 雜湊，登入是 HttpOnly cookie。
+- **帳號和群組**：透過初始化權杖或本機 CLI 建立第一位管理員，沒有預設帳號，也沒有預設密碼。密碼用 Argon2 雜湊，登入是 HttpOnly cookie。
 - 淺色和深色模式。
 
 ## 畫面
@@ -156,6 +156,7 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 
 ```bash
 git clone https://github.com/NatLee/keyword-vault.git && cd keyword-vault
+export ACCESS_SETUP_TOKEN=$(openssl rand -hex 32)
 docker compose up -d --build
 ```
 
@@ -172,7 +173,7 @@ flowchart LR
 瀏覽器網址須與 `ACCESS_PUBLIC_URL` 完全相同；預設使用 `http://127.0.0.1:8686`。正式 HTTPS 網域、既有 URL 變數、代理路由與升級方式見 [nginx 部署說明](docs/nginx-deployment.md)。
 
 1. 打開 <http://127.0.0.1:8686>。
-2. 第一次會請你建立管理員帳號（密碼至少 8 個字元）。
+2. 第一次會請你輸入上面的初始化權杖，建立管理員帳號（密碼至少 8 個字元）。完成後移除 `ACCESS_SETUP_TOKEN` 並重新建立容器。
 3. 到「設定」新增其他人的帳號，需要的話建立群組。
 4. 到「語法庫」按「新增關鍵字」，或用「匯入」一次放進一批。
 
@@ -204,7 +205,7 @@ docker compose exec keyword-vault keyword-vault reset-password <帳號>
 
 全形的 `＆｜！（）` 會自動當成半形。運算子照寫的順序送出去，不會自動排優先順序，`&` 和 `|` 混用時請加括號。
 
-語法解析器是另一個獨立的 Rust crate，[es-keyword-query](src/api/vendor/es-keyword-query)，原始碼一起放在這個 repo 裡。
+語法解析器是另一個獨立的 Rust crate，[es-keyword-query](crates/es-keyword-query)，原始碼一起放在這個 repo 裡。
 
 ## CSV 匯入
 
@@ -220,13 +221,15 @@ docker compose exec keyword-vault keyword-vault reset-password <帳號>
 
 ## 設定
 
-都是環境變數，全部可以不設。用 docker compose 時寫在同一個資料夾的 `.env`。
+設定使用環境變數；遠端首次初始化需要 `ACCESS_SETUP_TOKEN`，也可先用本機 CLI 建立管理員。用 docker compose 時寫在同一個資料夾的 `.env`。
 
 | 變數 | 預設 | 說明 |
 |---|---|---|
 | `KV_PORT` | `8686` | docker compose 對外的 port |
 | `KV_PUBLIC_URL` | | 外部看到的網址，例如 `https://keywords.example.com`。是 https 時登入 cookie 會加 `Secure`，也用來判斷寫入請求是不是同源 |
 | `KV_COOKIE_SECURE` | 看 `KV_PUBLIC_URL` | `true` / `false`，強制指定 cookie 要不要加 `Secure` |
+| `ACCESS_SETUP_TOKEN` | 未設定 | 32–512 字元的初始化權杖；遠端建立第一位管理員時必須提供，完成後可移除 |
+| `KV_SEGMENTATION_DICT` | 未設定 | 啟動時載入額外 UTF-8 中文詞典，格式與限制見斷詞文件 |
 | `KV_DEFAULT_SLOP` | `20` | `~` 後面沒寫數字時用的距離 |
 | `KV_BIND` | `0.0.0.0:8686` | 伺服器聽的位址 |
 | `KV_DATA_DIR` | `data`（映像檔裡是 `/app/data`） | 放 SQLite 資料庫的資料夾 |
@@ -242,14 +245,18 @@ docker compose exec keyword-vault keyword-vault reset-password <帳號>
 
 ```bash
 # 後端：http://127.0.0.1:8686
-cd src/api && cargo run
+cargo run -p keyword-vault
 
 # 前端：http://localhost:5173，/api 會轉給後端
 cd src/web && pnpm install && pnpm dev
 ```
 
 ```bash
-cd src/api && cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test
+cargo fmt --all --check
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
+python3 scripts/check-compiler.py
+cargo run -p es-keyword-query --example build_atlas -- --check
 cd src/web && pnpm test && pnpm build
 bash docs/smoke-test.sh http://127.0.0.1:8686   # 對一個空的執行個體跑一輪
 ```
@@ -296,7 +303,7 @@ Sign into an existing local account first and link its provider identity in Conn
 
 Connections creates a personal key with explicit scope (`keywords:read / expressions:read`), audience (`{origin}/api/v1` and/or `{origin}/mcp`) and expiry. Copy its raw value once; closing the panel removes it from the UI, and it is never stored in browser storage. Revoke keys and OAuth grants from the same page. Only cookie sessions can manage connections, clients and consent.
 
-Domain operations are `search_keywords`, `get_keyword`, `inspect_expression`, `compare_expressions`. API calls use `POST /api/v1/{operation}`, JSON arguments and `Authorization: Bearer <key-or-access-token>`; `/api/v1/openapi.json` describes the fixed schemas. No caller-supplied destination URL or identity header is supported. MCP uses Streamable HTTP at `/mcp`, negotiated version **2026-07-28**, discovery and normal SDK tool calls (no custom initialize payload). OAuth clients discover metadata, use authorization code + PKCE S256, exact resource/audience and the native immutable consent form; administrators register approved client redirect URIs in Connections. Public dynamic registration is disabled by default; set `ACCESS_DYNAMIC_CLIENT_REGISTRATION=true` only when needed. Admin registration remains available.
+Domain operations are `search_keywords`, `get_keyword`, `inspect_expression`, `compare_expressions`, `inspect_workbench`, `analyze_expression`. Compiler compatibility operations `compile_query`, `inspect_query`, `extract_terms` require the separately selected `queries:read` scope. API calls use `POST /api/v1/{operation}`, JSON arguments and `Authorization: Bearer <key-or-access-token>`; `/api/v1/openapi.json` describes the fixed schemas. No caller-supplied destination URL or identity header is supported. MCP uses Streamable HTTP at `/mcp`, negotiated version **2026-07-28**, discovery and normal SDK tool calls (no custom initialize payload). OAuth clients discover metadata, use authorization code + PKCE S256, exact resource/audience and the native immutable consent form; administrators register approved client redirect URIs in Connections. Public dynamic registration is disabled by default; set `ACCESS_DYNAMIC_CLIENT_REGISTRATION=true` only when needed. Admin registration remains available.
 
 Usage shows real UTC daily counts for 7/30/90 days, outcomes, transports and pending attempts. A real domain operation records one attempt across API/MCP; discovery, management and rejected credentials do not inflate usage. Detailed audit retention is 90 days. Event payloads omit raw keys, tokens and domain arguments/results. Legacy HTTP spans record method and matched route patterns; access routes and internal dispatch avoid payload tracing.
 
@@ -312,6 +319,8 @@ These are real local workflows with synthetic domain data and the feature-gated 
 
 
 ## 首次登入與建立管理員
+
+遠端部署先設定 32–512 字元的 `ACCESS_SETUP_TOKEN`，在表單中輸入同一個權杖；直接從真正 loopback socket 連線可免權杖，代理轉送的來源標頭不作為判斷依據。也可執行 `keyword-vault bootstrap <帳號>`，從 stdin 輸入密碼，離線建立第一位管理員。權杖和密碼不會印出。
 
 第一次開啟空白安裝時，首頁、登入頁和需要登入的頁面都會自動導向 `/first-login`。輸入 3–32 個英文字母、數字或 `. _ -` 的帳號、選填顯示名稱，以及 8–200 個字元的密碼與確認密碼，按「建立管理員」後即以新管理員身份進入工作空間。密碼不一致時不會送出請求。
 
@@ -332,3 +341,18 @@ Docker 對外網址請維持 `KV_PUBLIC_URL` 與 `ACCESS_PUBLIC_URL` 同源。�
 [註冊與審核驗證紀錄](docs/registration-verification.md) 提供測試範圍與實際瀏覽器截圖。
 
 實際 Chrome 畫面：[註冊頁・桌面淺色](docs/images/registration-register-desktop-light.png) · [管理員審核・手機深色](docs/images/registration-review-mobile-dark.png)。完整桌面／手機、淺色／深色共八張截圖見驗證紀錄。 可在建置後執行 `python docs/verify-registration.py --binary /path/to/binary` 重現完整流程；需安裝 Python Playwright 與 Google Chrome。
+
+
+## 統一工作台與中文分析
+
+`keyword-vault` 是主產品；同一個 Cargo workspace 維護可獨立使用、Rust 1.74 相容的 `es-keyword-query` 函式庫與 CLI。編譯器公用 API 和預設輸出保持不變，舊 repo 的來源與歷史會保留至完成移轉及重新導向。
+
+語法解剖提供 raw／precise、預設 slop、分組篩選器、最終 query string 和 JSON 匯出。**另存來源語法**只保存編輯區內容；要把篩選條件保存進語法，先明確按「套用篩選至草稿」。預覽 slop 與 raw 選項不會改寫既有關鍵字。
+
+繁體中文斷詞使用固定版本 jieba 與繁體大詞典，支援 normal／search 和管理員部署的自訂詞典。它是本機字詞預覽，不等於 Elasticsearch analyzer；不會把中文自動拆成 AND／OR，也不改變原本的子字串搜尋。詳見 [工作台、相容 API 與中文斷詞](docs/compiler-workbench.md)。
+
+舊編譯器帳號可用離線 dry-run 與明確 apply 移轉；**不要用舊資料庫覆蓋 Vault 資料庫**。指紋、ID 對照、衝突及備份流程見 [帳號移轉操作](docs/compiler-migration.md)。
+
+實作與驗證紀錄見 [整合驗證](docs/consolidation-verification.md)；可用隔離的 `docs/verify-consolidation.py` 重現桌面／手機、淺色／深色操作截圖。
+
+![統一編譯工作台](docs/images/consolidation-workbench-desktop-light.png)

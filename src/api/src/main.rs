@@ -1,10 +1,14 @@
 use anyhow::{bail, Result};
 use keyword_vault::{app, auth, build_state, demo, Config};
+use std::io::Read;
 use tokio::net::TcpListener;
 use tracing_subscriber::{prelude::*, EnvFilter};
 
 const USAGE: &str = "用法：
   keyword-vault                          啟動伺服器
+  keyword-vault import-compiler --source <舊資料庫> --destination <Vault資料庫> --report <新報告>
+  keyword-vault import-compiler --apply <報告> --backup <新備份>
+  keyword-vault bootstrap <帳號>         從 stdin 讀取密碼，建立第一位管理員
   keyword-vault reset-password <帳號>    重設某個帳號的密碼，新密碼會印在畫面上
   keyword-vault demo                     在空的資料庫裡建立範例帳號和關鍵字，密碼會印在畫面上
                                          （要自己指定密碼的話設 KV_DEMO_PASSWORD）
@@ -29,6 +33,8 @@ async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
         None => serve(Config::from_env()?).await,
+        Some("import-compiler") => import_compiler(&args[1..]).await,
+        Some("bootstrap") if args.len() == 2 => bootstrap(Config::from_env()?, &args[1]).await,
         Some("reset-password") => match args.get(1) {
             Some(username) => reset_password(Config::from_env()?, username).await,
             None => bail!("{USAGE}"),
@@ -58,10 +64,29 @@ async fn serve(config: Config) -> Result<()> {
     }
     let listener = TcpListener::bind(&bind).await?;
     tracing::info!("網頁介面：http://{}", listener.local_addr()?);
-    axum::serve(listener, app(state))
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    axum::serve(
+        listener,
+        app(state).into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown_signal())
+    .await?;
     tracing::info!("已停止");
+    Ok(())
+}
+
+async fn bootstrap(config: Config, username: &str) -> Result<()> {
+    let mut password = String::new();
+    std::io::stdin().take(4097).read_to_string(&mut password)?;
+    if password.len() > 4096 {
+        bail!("Password input too long");
+    }
+    let password = password.trim_end_matches(['\r', '\n']).to_owned();
+    let db = keyword_vault::db::connect(&config.database_path).await?;
+    let user = keyword_vault::setup::create_admin(&db, username, None, password)
+        .await
+        .map_err(|error| anyhow::anyhow!("{error:?}"))?;
+    db.close().await;
+    println!("Administrator {} created.", user.username);
     Ok(())
 }
 
@@ -119,5 +144,63 @@ async fn shutdown_signal() {
     tokio::select! {
         _ = ctrl_c => {},
         _ = terminate => {},
+    }
+}
+
+async fn import_compiler(args: &[String]) -> Result<()> {
+    use keyword_vault::migration::{self, MigrationReport};
+    use std::{collections::BTreeMap, path::Path};
+    let mut options = BTreeMap::new();
+    for pair in args.chunks(2) {
+        if pair.len() != 2
+            || !matches!(
+                pair[0].as_str(),
+                "--source" | "--destination" | "--report" | "--apply" | "--backup"
+            )
+            || options.insert(pair[0].as_str(), pair[1].as_str()).is_some()
+        {
+            bail!("Invalid import arguments.\n{USAGE}");
+        }
+    }
+    if options.len() == 3
+        && options.contains_key("--source")
+        && options.contains_key("--destination")
+        && options.contains_key("--report")
+    {
+        let report = migration::inspect(
+            Path::new(options["--source"]),
+            Path::new(options["--destination"]),
+        )
+        .await?;
+        migration::write_report(Path::new(options["--report"]), &report)?;
+        println!(
+            "Dry-run report written: {} users, {} identities, {} conflicts. No database changes.",
+            report.users.len(),
+            report.identities.len(),
+            report.conflicts.len()
+        );
+        if !report.conflicts.is_empty() {
+            bail!("Import blocked by conflicts; inspect the report and resolve them explicitly.");
+        }
+        Ok(())
+    } else if options.len() == 2
+        && options.contains_key("--apply")
+        && options.contains_key("--backup")
+    {
+        let mut input = Vec::new();
+        std::fs::File::open(options["--apply"])?
+            .take(64 * 1024 * 1024 + 1)
+            .read_to_end(&mut input)?;
+        if input.len() > 64 * 1024 * 1024 {
+            bail!("Migration report exceeds 64 MiB");
+        }
+        let report: MigrationReport = serde_json::from_slice(&input)?;
+        let receipt = migration::apply(&report, Path::new(options["--backup"])).await?;
+        println!("{}", serde_json::to_string_pretty(&receipt)?);
+        Ok(())
+    } else {
+        bail!(
+            "Use a dry-run source/destination/report, or apply/report with a new backup.\n{USAGE}"
+        );
     }
 }

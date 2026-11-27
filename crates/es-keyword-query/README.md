@@ -1,3 +1,5 @@
+> This library is maintained in the [Keyword Vault workspace](https://github.com/NatLee/keyword-vault/tree/main/crates/es-keyword-query). Its public Rust API, package name and Rust 1.74 minimum remain independent of the web product. Run examples from the workspace root with `cargo run -p es-keyword-query --example inspect -- '<expression>'`. Product accounts, workbench, Chinese analysis and API/MCP live in Keyword Vault; historical compiler design/atlas artifacts below remain available for reference.
+
 # es-keyword-query
 
 A compact boolean keyword syntax that compiles to an Elasticsearch / OpenSearch

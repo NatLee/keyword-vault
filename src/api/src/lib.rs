@@ -2,15 +2,20 @@
 //! 並把它編譯成 Elasticsearch / OpenSearch 的 `query_string`。
 
 pub mod access;
+pub mod analysis;
 pub mod auth;
 pub mod combo;
+pub mod compiler_compat;
 pub mod config;
 pub mod db;
 pub mod demo;
 pub mod error;
+pub mod migration;
 pub mod routes;
+pub mod setup;
 pub mod state;
 pub mod syntax;
+pub mod workbench;
 
 use std::sync::Arc;
 
@@ -34,8 +39,11 @@ pub async fn build_state(mut config: Config) -> Result<AppState> {
     let access_config = access_kit::AccessConfig::from_env(&origin)?;
     config.cookie_secure |= access_config.secure_cookies();
     config.public_origin = Some(url::Url::parse(&origin)?.origin().ascii_serialization());
+    let analyzer = Arc::new(analysis::Analyzer::load(
+        config.segmentation_dict.as_deref(),
+    )?);
     let db = db::connect(&config.database_path).await?;
-    let state = Arc::new(Inner::new(db, config));
+    let state = Arc::new(Inner::new(db, config, analyzer));
     access::install(&state, access_config).await?;
     Ok(state)
 }

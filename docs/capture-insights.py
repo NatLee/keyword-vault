@@ -30,12 +30,12 @@ with sync_playwright() as p:
     expect(page.get_by_text('位於排除群組內')).to_be_visible()
     draft.fill('a&&b')
     expect(page.get_by_text('不可有連續的邏輯運算子（第 3 個字元）')).to_be_visible()
-    expect(page.get_by_role('button',name='另存私人語法')).to_be_disabled()
+    expect(page.get_by_role('button',name='另存來源語法')).to_be_disabled()
     expect(page.locator('.anatomy')).to_have_count(0)
     draft.fill(expression)
     expect(page.get_by_role('button', name='節點 7：廣告', exact=True)).to_be_visible()
     page.get_by_label('新語法名稱').fill('解剖工作台 · 測試語法')
-    page.get_by_role('button',name='另存私人語法').click()
+    page.get_by_role('button',name='另存來源語法').click()
     link = page.get_by_role('link',name='開啟新語法 →');expect(link).to_be_visible()
     saved_id = link.get_attribute('href').rsplit('/',1)[-1]
     try:

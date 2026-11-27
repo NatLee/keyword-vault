@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, ApiError, UNAUTHORIZED_EVENT } from "./api";
-import type { AuthState, Meta, User } from "./types";
+import type { AuthState, Meta, User, SetupInput } from "./types";
 
 interface AppState {
   meta: Meta | null;
@@ -9,7 +9,7 @@ interface AppState {
   /** 讀不到登入狀態時的錯誤（後端沒開之類的） */
   authError: string | null;
   login: (username: string, password: string) => Promise<void>;
-  setup: (input: { username: string; display_name: string; password: string }) => Promise<void>;
+  setup: (input: SetupInput) => Promise<void>;
   logout: () => Promise<void>;
   /** 改了顯示名稱之後更新畫面上的名字 */
   setUser: (user: User) => void;
@@ -38,7 +38,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAuth({ setup_required: false, user });
   }, []);
 
-  const setup = useCallback(async (input: { username: string; display_name: string; password: string }) => {
+  const setup = useCallback(async (input: SetupInput) => {
     try {
       const user = await api.setup(input);
       setAuth({ setup_required: false, user });

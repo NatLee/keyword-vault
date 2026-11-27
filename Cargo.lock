@@ -11,18 +11,24 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "http",
+ "http-body-util",
  "jsonschema",
  "oauth2",
  "openidconnect",
+ "rand_chacha",
  "rand_core 0.6.4",
  "reqwest 0.12.28",
+ "reqwest 0.13.5",
  "rmcp",
+ "rsa",
  "serde",
  "serde_json",
  "serde_urlencoded",
  "sha2 0.10.9",
+ "signature 2.2.0",
  "sqlx",
  "subtle",
+ "tempfile",
  "tokio",
  "tower",
  "url",
@@ -779,6 +785,7 @@ dependencies = [
 name = "es-keyword-query"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
  "unicode-normalization",
 ]
 
@@ -1448,6 +1455,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3bd1574e617a9a6c1f8f8181bd7e841e1f20e4277607ef28945765188d6284d4"
 
 [[package]]
+name = "jieba-macros"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2987cf45b1bfdb4ff1f6a814b1aa2ad6361f4ff43bf353a9bd29f391a9568f70"
+
+[[package]]
+name = "jieba-rs"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a3a7d02ea31e6fc6f2fe10495dc7c5efcf381e1f21d7172f58ba792efa1c2fd"
+dependencies = [
+ "bytecount",
+ "jieba-macros",
+ "rustc-hash",
+]
+
+[[package]]
 name = "jiff"
 version = "0.2.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1687,6 +1711,7 @@ dependencies = [
  "csv",
  "es-keyword-query",
  "http-body-util",
+ "jieba-rs",
  "rand_core 0.6.4",
  "reqwest 0.13.5",
  "rmcp",
@@ -1696,6 +1721,7 @@ dependencies = [
  "sha2 0.10.9",
  "similar",
  "sqlx",
+ "subtle",
  "tempfile",
  "tokio",
  "tower",
@@ -2627,6 +2653,7 @@ dependencies = [
  "pkcs1",
  "pkcs8 0.10.2",
  "rand_core 0.6.4",
+ "sha2 0.10.9",
  "signature 2.2.0",
  "spki 0.7.3",
  "subtle",

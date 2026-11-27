@@ -113,3 +113,16 @@ test("a delayed setup-conflict refresh cannot replace a newer signed-in session"
   expect(screen.queryByRole("button", {name:"登入"})).not.toBeInTheDocument();
   authState.mockRestore();
 });
+
+test("remote setup requires deployment code and sends it only in the body", async () => {
+  const calls=fakeApi({"GET /auth/state":()=>({setup_required:true,setup_token_required:true,setup_token_configured:true,user:null}),"POST /auth/setup":()=>{throw new ApiError(403,"代碼錯誤",null);}});
+  show(); await fill();
+  const token=await screen.findByLabelText("部署設定代碼");
+  expect(screen.getByRole("button",{name:"建立管理員"})).toBeDisabled();
+  await userEvent.type(token,"deployment-code-canary-32-characters");
+  await userEvent.click(screen.getByRole("button",{name:"建立管理員"}));
+  await screen.findByRole("alert");
+  expect(calls.find(c=>c.path==="/auth/setup")?.body).toMatchObject({setup_token:"deployment-code-canary-32-characters"});
+  expect(screen.getByTestId("location").textContent).not.toContain("deployment-code");
+  expect(localStorage.getItem("setup_token")).toBeNull();
+});

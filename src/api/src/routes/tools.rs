@@ -11,6 +11,36 @@ use crate::{
     syntax::{self, MAX_EXPANDED_CHARS},
 };
 
+pub async fn inspect(
+    State(state): State<AppState>,
+    _user: CurrentUser,
+    Json(input): Json<crate::workbench::InspectInput>,
+) -> AppResult<Json<Value>> {
+    Ok(Json(crate::workbench::inspect(
+        input,
+        state.config.default_slop,
+    )?))
+}
+
+pub async fn analyze(
+    State(state): State<AppState>,
+    _user: CurrentUser,
+    Json(input): Json<crate::analysis::AnalysisInput>,
+) -> AppResult<Json<crate::analysis::AnalysisResult>> {
+    let permit = state
+        .analysis_slots
+        .clone()
+        .try_acquire_owned()
+        .map_err(|_| AppError::TooManyRequests("斷詞工作忙碌中，請稍後重試".into()))?;
+    let analyzer = state.analyzer.clone();
+    let result = tokio::task::spawn_blocking(move || {
+        let _permit = permit;
+        analyzer.analyze(input)
+    })
+    .await??;
+    Ok(Json(result))
+}
+
 #[derive(Deserialize)]
 pub struct CheckBody {
     expression: String,

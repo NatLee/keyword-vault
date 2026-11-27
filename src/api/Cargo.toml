@@ -24,13 +24,15 @@ argon2 = "0.5"
 axum = "0.8"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 csv = "1"
-# Vendored parser source and regression tests keep builds self-contained.
-es-keyword-query = { path = "vendor/es-keyword-query" }
+jieba-rs = { version = "=0.11.0", default-features = false }
+# Shared workspace compiler; no duplicate parser source.
+es-keyword-query = { path = "../../crates/es-keyword-query" }
 # OsRng：密碼的 salt 和 session token 用作業系統的亂數
 rand_core = { version = "0.6", features = ["getrandom"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
+subtle = "2"
 similar = "2"
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "sqlite", "macros", "migrate"] }
 tokio = { version = "1", features = ["full"] }
@@ -44,13 +46,3 @@ sdk-reqwest = { package = "reqwest", version = "0.13.2", default-features = fals
 http-body-util = "0.1"
 tempfile = "3"
 tower = { version = "0.5", features = ["util"] }
-
-# 密碼雜湊在未最佳化的 build 很慢；讓測試跑快一點。
-[profile.dev.package.argon2]
-opt-level = 3
-[profile.dev.package.blake2]
-opt-level = 3
-
-[profile.release]
-lto = "thin"
-strip = true

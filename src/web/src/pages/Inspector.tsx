@@ -10,11 +10,13 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { api } from "../api";
 import { PageBody } from "../components/Layout";
+import { InspectionControls, useInspection } from "../components/InspectionControls";
+import { ChineseAnalysis } from "../components/ChineseAnalysis";
 import { QueryAnatomy } from "../components/QueryAnatomy";
-import { CheckResultView, useCheck } from "../components/SyntaxCheck";
+import { CheckResultView } from "../components/SyntaxCheck";
 import { ErrorBanner, Spinner } from "../components/ui";
 import { errorText, useAsync, useDebounced } from "../lib/hooks";
-import type { Keyword } from "../types";
+import type { CheckResult, Keyword } from "../types";
 
 const INITIAL = "(茶|咖啡)&評價!(業配|廣告)";
 export function Inspector() {
@@ -33,7 +35,14 @@ export function Inspector() {
   const [failure, setFailure] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState<number | null>(null);
-  const check = useCheck(expression);
+  const [precise, setPrecise] = useState(true);
+  const [slop, setSlop] = useState("");
+  const [filter, setFilter] = useState("");
+  const optionsValid = slop === "" || (/^\d+$/.test(slop) && Number(slop) <= 4294967295);
+  const inspection = useInspection({expression, filter_expression:filter, precise, ...(slop === "" ? {} : {default_slop:Number(slop)})}, optionsValid);
+  const artifact = inspection.result?.valid ? inspection.result.inspection : null;
+  const result: CheckResult|null = artifact ? {valid:true, ...artifact.query, query_string:artifact.query_string} : inspection.result && !inspection.result.valid ? {valid:false,error:{...inspection.result.error,message:`${inspection.result.error.source === "filter" ? "篩選條件：" : ""}${inspection.result.error.message}`}} : null;
+  const check = {...inspection, result};
   const draft = useRef(expression);
   draft.current = expression;
   const sourceId = useRef(id);
@@ -44,6 +53,7 @@ export function Inspector() {
     setFailure(null);
     setSaved(null);
     setSource(null);
+    setFilter("");
     if (!id) {
       setLoading(false);
       setExpression(INITIAL);
@@ -72,7 +82,7 @@ export function Inspector() {
   }, [id]);
 
   const baseline = source?.expression ?? INITIAL;
-  const dirty = expression !== baseline;
+  const dirty = expression !== baseline || Boolean(filter.trim());
   const choose = (next: number | null) => {
     if (next === id) return;
     if (dirty && !window.confirm("切換語法會捨棄尚未儲存的草稿，繼續嗎？"))
@@ -229,6 +239,12 @@ export function Inspector() {
               </Link>
             )}
           </div>
+          <InspectionControls precise={precise} setPrecise={setPrecise} slop={slop} setSlop={setSlop} filter={filter} setFilter={setFilter} artifact={artifact} onApply={() => {
+            if (!artifact?.filter || !artifact.filter_expression) return;
+            setExpression(`(${artifact.filter_expression})&(${expression})`);
+            setFilter("");
+            setSaved(null);
+          }}/>
           <div className="inspection-result">
             <CheckResultView {...check} />
             {!expression.trim() && !loading && (
@@ -238,6 +254,8 @@ export function Inspector() {
           {check.result?.valid && (
             <QueryAnatomy key={expression} clauses={check.result.clauses} />
           )}
+          {artifact?.filter && <section aria-label="篩選條件結構"><h2 className="inspection-filter-title">篩選條件結構</h2><QueryAnatomy key={filter} clauses={artifact.filter.clauses}/></section>}
+          <ChineseAnalysis expression={expression} precise={precise} enabled={Boolean(artifact)}/>
           {failure && <ErrorBanner message={failure} />}
           <form
             className="inspection-save"
@@ -249,7 +267,7 @@ export function Inspector() {
             <div>
               <span className="eyebrow">03 / KEEP THE GOOD VERSION</span>
               <h2>把這個想法，留在語法庫。</h2>
-              <p>另存私人副本，確認後再從詳情頁分享給團隊。</p>
+              <p>另存私人副本，確認後再從詳情頁分享給團隊。預覽設定與篩選條件不會存入來源語法。未指定距離的 ~ 仍使用伺服器預設值。</p>
             </div>
             <div className="inspection-save-fields">
               <label htmlFor="inspection-name">新語法名稱</label>
@@ -273,7 +291,7 @@ export function Inspector() {
                   Array.from(expression).length > 5000
                 }
               >
-                {busy ? <Spinner /> : <Save className="size-4" />} 另存私人語法
+                {busy ? <Spinner /> : <Save className="size-4" />} 另存來源語法
               </button>
             </div>
             {Array.from(expression).length > 5000 && (

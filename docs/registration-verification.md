@@ -22,7 +22,7 @@ python3 -m venv .venv-browser
 .venv-browser/bin/python docs/verify-registration.py
 ```
 
-The default binary is under `src/api/target/debug/`. If using `CARGO_TARGET_DIR` or another build directory, pass `--binary /absolute/path/to/the/binary`. The harness chooses a free local port, creates a fresh temporary database, exercises the full lifecycle and 64/256/100 boundaries, captures eight screenshots, prints its check results, and stops/deletes everything it created. `--output-dir /path/to/images` selects another screenshot directory. It never connects to an existing server. These checks require only local password registration; no provider credentials are required.
+The default binary is under `target/debug/`. If using `CARGO_TARGET_DIR` or another build directory, pass `--binary /absolute/path/to/the/binary`. The harness chooses a free local port, creates a fresh temporary database, exercises the full lifecycle and 64/256/100 boundaries, captures eight screenshots, prints its check results, and stops/deletes everything it created. `--output-dir /path/to/images` selects another screenshot directory. It never connects to an existing server. These checks require only local password registration; no provider credentials are required.
 
 ## Real Chrome behavior
 

@@ -18,7 +18,7 @@
 | 方法 | 路徑 | 內容 | 回應 |
 |---|---|---|---|
 | GET | `/auth/state` | | `{setup_required, user}`，沒登入時 `user` 是 `null` |
-| POST | `/auth/setup` | `{username, display_name?, password}` | 建立第一個管理員並登入；已經有帳號時不能用 |
+| POST | `/auth/setup` | `{username, display_name?, password, setup_token?}` | 建立第一個管理員並登入；已經有帳號時不能用 |
 | POST | `/auth/login` | `{username, password}` | `User` |
 | POST | `/auth/logout` | | |
 | PATCH | `/auth/me` | `{display_name}` | `User` |
@@ -146,3 +146,6 @@ curl -b cookies.txt -H 'content-type: application/json' \
 - `output`：單一詞彙／片語的編譯文字，不含前接運算子和排除；群組為 `null`。
 
 父節點一定先於子節點。排除群組的子節點不重複標記 `negated`。此資料只描述寫入的括號與順序，不加入搜尋引擎的運算子優先順序。無效語法回應不含 `clauses`。
+
+
+統一編譯器的 `/api/tools/inspect`、`/api/tools/analyze`、舊版 `/api/compiler/inspect`，及 API/MCP 操作與限制見 [工作台 API](compiler-workbench.md)。遠端首次初始化須提供部署設定的 `ACCESS_SETUP_TOKEN`；`/auth/state` 只回傳是否需要／是否設定權杖，從不回傳權杖內容。

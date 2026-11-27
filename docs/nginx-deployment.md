@@ -44,3 +44,12 @@ Server-scoped nginx error logging is disabled because request-bearing errors can
 Installed Chrome158.0.8127.37 exercised the built React app through nginx with a64-character username,256-character password and100-character display name, then edited the profile, signed out and signed back in. The API ran nonroot with no published host port. Recreating only the backend preserved the administrator's database session while the nginx container stayed unchanged. No test password or bearer key appeared in nginx logs.
 
 The harness writes `/tmp/keyword-vault-nginx-compose.result.json`, `.summary.log`, `.runtime.log` and `.cleanup.log`. It removed its own containers, network, fresh data volume and temporary override afterward. These are local HTTP/protocol/browser checks; they do not claim production TLS or live provider callbacks.
+
+
+## 統一編譯器版本的初始化與詞典
+
+此版本的 nginx 連線屬於遠端 socket。全新資料庫須透過 `ACCESS_SETUP_TOKEN` 保護首次設定；部署前用 `openssl rand -hex 32` 產生32–512字元權杖並設於服務環境，首次表單輸入同值。完成後移除環境變數並重新建立 API 容器；已有帳號不再接受初始化。不要設定空字串。也可以先用 `docker compose run --rm -T keyword-vault keyword-vault bootstrap <帳號>` 從 stdin安全提供密碼，建立管理員後再啟動對外入口。不要把密碼當命令列參數。
+
+Compose保留 `ACCESS_SETUP_TOKEN` 的未設定狀態，不使用固定預設值。CI／smoke測試會臨時產生獨立權杖；執行 `docs/smoke-test.sh` 時傳入同一環境變數即可。舊 Vault資料庫可原地升級，編譯器來源資料庫只能經 [離線匯入](compiler-migration.md) 處理。
+
+內建繁體詞典直接包進 API binary，runtime不需連線下載。若需自訂詞典，在 Compose override 中為 API 加上唯讀bind mount，例如 `/srv/keyword-vault/user-dict.txt:/app/config/user-dict.txt:ro`，並設 `KV_SEGMENTATION_DICT=/app/config/user-dict.txt`。容器使用uid10001，檔案需對該uid可讀。格式錯誤會阻止啟動；變更後須重新啟動並核對預覽回傳的dict SHA-256。

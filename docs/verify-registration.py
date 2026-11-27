@@ -169,7 +169,7 @@ def run(repo, browser, args):
   log.close();temp.cleanup()
 if __name__ == '__main__':
  parser=argparse.ArgumentParser(description=__doc__)
- parser.add_argument('--binary',type=Path,default=ROOT/'src/api/target/debug/keyword-vault',help='Built Rust host binary; defaults to src/api/target/debug/keyword-vault')
+ parser.add_argument('--binary',type=Path,default=ROOT/'target/debug/keyword-vault',help='Built Rust host binary; defaults to target/debug/keyword-vault')
  parser.add_argument('--port',type=int,default=0,help='Local port; default chooses an available port')
  parser.add_argument('--channel',default='chrome',help='Playwright browser channel; default uses installed Google Chrome')
  parser.add_argument('--output-dir',type=Path,default=ROOT/'docs/images',help='Directory for eight password-free screenshots')
