@@ -77,3 +77,16 @@ database assets. The sole historical credential-pattern match was
 No real secret or personal-data candidate was found. Demo people and content
 are fictional. Screenshots and logs contain no session tokens, passwords or
 local user paths. Heuristic scanning cannot identify every encoded secret.
+
+## README image audit (2026-11-27)
+
+Verified all 17 application PNGs against the merged anatomy workspace and rebuilt
+frontend. The combination-detail images now capture the full page at 1440px in
+both themes, so the compiled query, composition and comments remain visible below
+the anatomy panel. Other captures and the anatomy cover already match the current
+interface and were retained. All local README image references resolve.
+
+Reproduce with `docs/capture-ui.py` against an isolated synthetic demo, using the
+README environment variables. The capture script and `docs/capture-insights.py`
+both passed in Chrome without page errors; mobile navigation and overflow checks
+passed. No production data or mocked UI was used.

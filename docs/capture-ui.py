@@ -9,8 +9,8 @@ with sync_playwright() as p:
  browser=p.chromium.launch(headless=True, executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_PATH"))
  context=browser.new_context(viewport={'width':1440,'height':1000},device_scale_factor=1)
  page=context.new_page();page.on('pageerror',lambda error: errors.append(str(error)))
- def shot(name):
-  page.evaluate('document.fonts.ready');page.wait_for_timeout(220);page.screenshot(path=str(OUT/name))
+ def shot(name, full=False):
+  page.evaluate('document.fonts.ready');page.wait_for_timeout(220);page.screenshot(path=str(OUT/name),full_page=full,animations='disabled')
  def goto(path):
   page.goto(BASE+path);page.wait_for_load_state('networkidle')
  def check_width(label):
@@ -30,7 +30,8 @@ with sync_playwright() as p:
  page.get_by_role('button',name='新增',exact=True).click();expect(page.get_by_role('heading',name='茶飲口碑觀察',exact=False)).to_be_visible();created_id=page.url.rsplit('/',1)[-1];checks.append('create from editor and live syntax validation')
  # QA creates only in the isolated demo database; remove the temporary record afterwards.
  response=context.request.delete(BASE+'/api/keywords/'+created_id);assert response.ok
- goto('/keywords/33');shot('screenshot-detail-light.png');page.get_by_role('radio',name='深色',exact=True).click();shot('screenshot-detail-dark.png');page.get_by_role('radio',name='淺色',exact=True).click()
+ # The anatomy panel pushes the compiled query and comments below the viewport.
+ goto('/keywords/33');shot('screenshot-detail-light.png',full=True);page.get_by_role('radio',name='深色',exact=True).click();shot('screenshot-detail-dark.png',full=True);page.get_by_role('radio',name='淺色',exact=True).click()
  goto('/keywords/1');page.get_by_role('button',name='改了語法').first.click();page.wait_for_timeout(400);shot('screenshot-history-light.png')
  goto('/compare?a=茶%7C咖啡&b=(茶%7C咖啡)%26評價!業配');shot('screenshot-compare-light.png')
  goto('/guide');shot('screenshot-guide-light.png');page.get_by_label('關鍵字語法',exact=True).fill('a&&b');page.wait_for_timeout(400);assert '不可有連續' in page.inner_text('main');checks.append('invalid syntax feedback')
