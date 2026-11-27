@@ -1,7 +1,9 @@
 .git
 .github
 docs
-data
+data/*
+!data/segmentation
+!data/segmentation/**
 **/node_modules
 **/.pnpm-store
 **/dist

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>es-keyword-query — Compiler Foundry cover</title>
+<style>
+
+
+* {
+  box-sizing:border-box;
+}
+body {
+  margin: 0;
+  width:1440px;
+  height:720px;
+  overflow:hidden;
+  background:#174ee5;
+  color:#f5f7ff;
+  font-family:monospace;
+  background-image:linear-gradient(#ffffff0b 1px,transparent 1px),linear-gradient(90deg,#ffffff0b 1px,transparent 1px);
+  background-size:24px 24px;
+}
+.frame {
+  position:absolute;
+  inset:28px;
+  border:1px solid #ffffff60;
+}
+.top {
+  position:absolute;
+  top:52px;
+  left:64px;
+  right:64px;
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
+  letter-spacing:2px;
+}
+.mark {
+  border:1px solid #fff;
+  padding: 8px 12px;
+  position:absolute;
+  top:108px;
+  left:64px;
+  font-size:23px;
+}
+.title {
+  position:absolute;
+  left:64px;
+  top:181px;
+}
+h1 {
+  font-weight:600;
+  font-family:"Avenir Next",sans-serif;
+  margin: 0;
+  font-size:48px;
+  line-height:.9;
+  letter-spacing:-1px;
+}
+h1 span {
+  color:#dae5ff;
+}
+p {
+  font-size:18px;
+  line-height:1.65;
+  max-width:490px;
+  margin-top: 28px;
+}
+.repo {
+  position:absolute;
+  left:64px;
+  bottom:76px;
+  font-size:25px;
+  letter-spacing:-1px;
+}
+.right {
+  position:absolute;
+  top:138px;
+  left:700px;
+  width:660px;
+  height:460px;
+}
+.caption {
+  font-size:12px;
+  letter-spacing:2px;
+  color:#b9d2ff;
+}
+.input {
+  margin-top: 20px;
+  font-size:28px;
+  border-top:1px solid #ffffff70;
+  padding-top: 20px;
+}
+.input b {
+  color:#dae5ff;
+}
+svg {
+  width:660px;
+  height:290px;
+  overflow:visible;
+}
+.output {
+  background:#071a50;
+  padding: 24px 24px;
+  font-size:20px;
+  border-left:4px solid #dae5ff;
+  position:absolute;
+  top:373px;
+  width:660px;
+  box-shadow: none;
+}
+.output small {
+  display:block;
+  color:#dae5ff;
+  font-size:10px;
+  letter-spacing:2px;
+  margin-bottom: 12px;
+}
+.seal {
+  position:absolute;
+  right:64px;
+  bottom:57px;
+  font-family:"Avenir Next",sans-serif;
+  font-size:16px;
+  border:2px solid #dae5ff;
+  color:#dae5ff;
+  padding: 12px;
+  transform:rotate(-5deg);
+  letter-spacing:2px;
+}
+.bottom {
+  position:absolute;
+  bottom:37px;
+  left:64px;
+  color:#bad1ff;
+  font-size:10px;
+  letter-spacing:2px;
+}
+
+
+</style>
+<div class="frame">
+</div>
+<div class="top">
+<span>LANGUAGE ENGINEERING / COMPILER FOUNDRY</span>
+<span>RUST · ES / OPENSEARCH</span>
+</div>
+<div class="mark">[&amp;]</div>
+<div class="title">
+<h1>SMALL SYNTAX.<br>
+<span>EXPLICIT LOGIC.</span>
+</h1>
+<p>Turn everyday keyword expressions<br>into search engine instructions.</p>
+</div>
+<div class="repo">es-keyword-query</div>
+<div class="right">
+<div class="caption">FIG. 01 / FROM EXPRESSION TO INSTRUCTION</div>
+<div class="input">(tea<b>|</b>coffee)<b>&amp;</b>shop<b>!</b>ad</div>
+<svg viewBox="0 0 660 290" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="#dae5ff" stroke-width="2">
+<path d="M330 15V45H140V83M330 45H400V83M330 45H566V83M140 134V174H62V210M140 174H220V210"/>
+<circle cx="330" cy="15" r="4" fill="#dae5ff"/>
+</g>
+<g fill="#174ee5" stroke="#cbdcff">
+<rect x="55" y="83" width="170" height="51"/>
+<rect x="329" y="83" width="142" height="51" rx="5"/>
+<rect x="504" y="83" width="124" height="51" rx="5" stroke="#ffbbad"/>
+<rect x="3" y="210" width="119" height="51" rx="5"/>
+<rect x="152" y="210" width="136" height="51" rx="5"/>
+</g>
+<g fill="#fff" font-family="monospace" font-size="20" text-anchor="middle">
+<text x="140" y="115">( group )</text>
+<text x="400" y="115">shop</text>
+<text x="566" y="115" fill="#ffbbad">ad</text>
+<text x="62" y="242">tea</text>
+<text x="220" y="242">coffee</text>
+</g>
+<g fill="#dae5ff" font-size="12" font-family="monospace" text-anchor="middle">
+<text x="400" y="73">AND</text>
+<text x="566" y="73" fill="#ffbbad">NOT</text>
+<text x="220" y="200">OR</text>
+</g>
+</svg>
+<div class="output">
+<small>COMPILED / QUERY_STRING</small>("tea" OR "coffee") AND "shop" NOT "ad"</div>
+</div>
+<div class="seal">RUST COMPILED</div>
+<div class="bottom">NORMALIZE → PARSE → COMPILE / PRESERVE WRITTEN STRUCTURE</div>
+</html>

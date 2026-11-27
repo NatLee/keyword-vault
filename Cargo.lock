@@ -11,18 +11,24 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "http",
+ "http-body-util",
  "jsonschema",
  "oauth2",
  "openidconnect",
+ "rand_chacha",
  "rand_core 0.6.4",
  "reqwest 0.12.28",
+ "reqwest 0.13.5",
  "rmcp",
+ "rsa",
  "serde",
  "serde_json",
  "serde_urlencoded",
  "sha2 0.10.9",
+ "signature 2.2.0",
  "sqlx",
  "subtle",
+ "tempfile",
  "tokio",
  "tower",
  "url",
@@ -779,6 +785,7 @@ dependencies = [
 name = "es-keyword-query"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
  "unicode-normalization",
 ]
 
@@ -2627,6 +2634,7 @@ dependencies = [
  "pkcs1",
  "pkcs8 0.10.2",
  "rand_core 0.6.4",
+ "sha2 0.10.9",
  "signature 2.2.0",
  "spki 0.7.3",
  "subtle",

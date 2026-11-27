@@ -8,13 +8,15 @@ on:
 permissions:
   contents: read
 
+env:
+  CARGO_BUILD_JOBS: 2
+  CARGO_PROFILE_DEV_DEBUG: 0
+  CARGO_PROFILE_TEST_DEBUG: 0
+
 jobs:
   api:
     name: API (Rust)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/api
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
@@ -22,13 +24,25 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src/api
+          workspaces: .
       - name: Format
-        run: cargo fmt --check
+        run: cargo fmt --all --check
       - name: Lint
-        run: cargo clippy --all-targets --locked -- -D warnings
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Test
-        run: cargo test --locked
+        run: cargo test --workspace --locked
+      - name: Compiler CLI and atlas
+        run: |
+          python3 scripts/check-compiler.py
+          cargo run -p es-keyword-query --locked --example build_atlas -- --check
+
+  compiler-msrv:
+    name: Standalone compiler Rust 1.74
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@1.74.0
+      - run: bash scripts/check-compiler-msrv.sh
 
   web:
     name: Web (React)
@@ -49,7 +63,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Test
-        run: pnpm test
+        run: pnpm test --maxWorkers=2
       - name: Type-check and build
         run: pnpm build
 

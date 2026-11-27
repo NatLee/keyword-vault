@@ -1,0 +1,35 @@
+   Compiling es-keyword-query v0.1.0 (<repo>)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.38s
+     Running unittests src/lib.rs (target/debug/build/es-keyword-query/63c025e96f146e8c/out/es_keyword_query-63c025e96f146e8c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/query.rs (target/debug/build/es-keyword-query/62d6edf5e0dc8d53/out/query-62d6edf5e0dc8d53)
+
+running 14 tests
+test default_slop_is_configurable ... ok
+test error_reports_position_and_messages ... ok
+test grouped_filter_does_not_leak_or_into_the_query ... ok
+test operators ... ok
+test full_width_input_is_normalised ... ok
+test commas ... ok
+test escapes ... ok
+test groups ... ok
+test proximity ... ok
+test raw_mode_leaves_terms_unquoted ... ok
+test reference_examples_match_the_compiler ... ok
+test terms_and_filter ... ok
+test syntax_errors ... ok
+test nesting_limit_rejects_adversarial_input_without_recursing_unboundedly ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests es_keyword_query
+
+running 1 test
+test src/lib.rs - (line 16) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+

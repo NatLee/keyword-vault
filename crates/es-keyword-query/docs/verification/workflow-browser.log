@@ -1,0 +1,11 @@
+{
+  "source": "(tea|coffee)&shop!ad",
+  "mode": "raw",
+  "filter": "specimen 02 / phrase slop",
+  "download": "query_string and source verified",
+  "mobile_width": 390,
+  "keyboard": "node Enter / stage Home passed",
+  "page_errors": [],
+  "captures": 3,
+  "cover": "1440x720"
+}

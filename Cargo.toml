@@ -1,0 +1,15 @@
+[workspace]
+members = ["src/api", "crates/access-kit", "crates/es-keyword-query"]
+resolver = "2"
+
+[profile.dev.package.argon2]
+opt-level = 3
+[profile.dev.package.blake2]
+opt-level = 3
+[profile.dev]
+debug = 0
+[profile.test]
+debug = 0
+[profile.release]
+lto = "thin"
+strip = true
