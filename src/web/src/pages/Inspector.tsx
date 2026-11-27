@@ -111,18 +111,20 @@ export function Inspector() {
     <PageBody>
       <div className="inspection-title">
         <div>
-          <span className="eyebrow">THE ANATOMY DESK / 解析・推敲・留下</span>
+          <span className="eyebrow">
+            THE ANNOTATION DESK / 典藏・拆解・推敲
+          </span>
           <h1>
             把語法拆開，<em>看懂每一層。</em>
           </h1>
-          <p>從已儲存的查詢開始，或在草稿裡試一個新想法。</p>
+          <p>從典藏索引抽出一份語法，在這張推敲桌上留下新想法。</p>
         </div>
         <div className="inspection-stamp">
           <FlaskConical />
           <span>
-            LIVE
+            ANNOTATION
             <br />
-            RUST PARSER
+            WORKING COPY
           </span>
         </div>
       </div>

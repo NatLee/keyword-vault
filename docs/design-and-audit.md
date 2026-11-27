@@ -1,4 +1,4 @@
-> Historical notes for the first visual pass. The current anatomy desk is documented in [visual-insights.md](visual-insights.md).
+> Historical notes for the first visual pass. The current Query Cabinet is documented in [query-cabinet.md](query-cabinet.md); the parser-backed desk is documented in [visual-insights.md](visual-insights.md).
 
 # Keyword Vault: expression workspace
 
@@ -15,7 +15,7 @@ to the workspace. Cards allow their contents to shrink, and long expressions
 wrap or truncate without forcing the mobile viewport wider. The unused Inter
 font dependency was removed; Noto Sans TC remains self-hosted.
 
-The editable cover is `docs/images/cover.svg`. All 14 PNG screenshots were
+The current README cover is an actual application screenshot. The original 14 PNG screenshots were
 recaptured from the working application using only its built-in fictional demo
 data. The old cover artwork was removed. `docs/capture-ui.py` reproduces browser
 checks and screenshots on an isolated demo instance; it requires Playwright

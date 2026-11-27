@@ -1,4 +1,5 @@
 import "@fontsource-variable/noto-sans-tc";
+import "@fontsource-variable/noto-serif-tc/wght.css";
 import "./index.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

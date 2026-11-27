@@ -1,13 +1,36 @@
-import { ChevronLeft, ChevronRight, Download, FileUp, KeyRound, MessageSquare, Plus, Search, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileUp,
+  KeyRound,
+  LayoutGrid,
+  List,
+  MessageSquare,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { api } from "../api";
 import { Expression } from "../components/Expression";
 import { ImportDialog } from "../components/ImportDialog";
-import { FavoriteButton, KeywordBadges, TagLink } from "../components/KeywordBits";
+import {
+  FavoriteButton,
+  KeywordBadges,
+  TagLink,
+} from "../components/KeywordBits";
 import { KeywordEditor } from "../components/KeywordEditor";
 import { PageBody } from "../components/Layout";
-import { Empty, ErrorBanner, Loading, PageHeader, useToast } from "../components/ui";
+import {
+  Empty,
+  ErrorBanner,
+  Loading,
+  PageHeader,
+  useToast,
+} from "../components/ui";
 import { timeAgo } from "../lib/format";
 import { errorText, useAsync, useDebounced } from "../lib/hooks";
 import type { Keyword, Kind, ListFilter, Scope, Sort } from "../types";
@@ -21,7 +44,11 @@ const SCOPES: { value: Scope; label: string }[] = [
   { value: "favorites", label: "收藏" },
 ];
 
-function oneOf<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T {
+function oneOf<T extends string>(
+  value: string | null,
+  allowed: readonly T[],
+  fallback: T,
+): T {
   return allowed.includes(value as T) ? (value as T) : fallback;
 }
 
@@ -31,9 +58,17 @@ function useFilter() {
   const filter = {
     q: params.get("q") ?? "",
     tag: params.get("tag") ?? "",
-    scope: oneOf<Scope>(params.get("scope"), ["all", "mine", "shared", "favorites"], "all"),
+    scope: oneOf<Scope>(
+      params.get("scope"),
+      ["all", "mine", "shared", "favorites"],
+      "all",
+    ),
     kind: oneOf<Kind | "">(params.get("kind"), ["plain", "combination"], ""),
-    sort: oneOf<Sort>(params.get("sort"), ["updated", "created", "theme"], "updated"),
+    sort: oneOf<Sort>(
+      params.get("sort"),
+      ["updated", "created", "theme"],
+      "updated",
+    ),
     page: Math.max(1, Number(params.get("page")) || 1),
   };
   const update = (changes: Partial<typeof filter>) => {
@@ -50,13 +85,27 @@ function useFilter() {
   return [filter, update] as const;
 }
 
-function KeywordRow({ keyword, onFavorite }: { keyword: Keyword; onFavorite: () => void }) {
+function KeywordRow({
+  keyword,
+  onFavorite,
+}: {
+  keyword: Keyword;
+  onFavorite: () => void;
+}) {
   return (
-    <li className="keyword-record flex gap-3 px-4 py-4 sm:px-5">
-      <span className="record-index" aria-hidden="true">{String(keyword.id).padStart(3, "0")}</span>
+    <li
+      className={`keyword-record ${keyword.is_combination ? "is-combination" : ""} flex gap-3 px-4 py-4 sm:px-5`}
+    >
+      <span className="record-index" aria-hidden="true">
+        <small>{keyword.is_combination ? "COMPOSED" : "MANUSCRIPT"}</small>
+        {String(keyword.id).padStart(3, "0")}
+      </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <Link to={`/keywords/${keyword.id}`} className="font-medium hover:text-brand-700 dark:hover:text-brand-300">
+          <Link
+            to={`/keywords/${keyword.id}`}
+            className="record-title font-medium hover:text-brand-700 dark:hover:text-brand-300"
+          >
             {keyword.theme}
           </Link>
           <KeywordBadges keyword={keyword} />
@@ -64,7 +113,11 @@ function KeywordRow({ keyword, onFavorite }: { keyword: Keyword; onFavorite: () 
             <TagLink key={t} tag={t} />
           ))}
         </div>
-        <Link to={`/keywords/${keyword.id}`} className="record-expression mt-2 block text-zinc-700 dark:text-zinc-200" tabIndex={-1}>
+        <Link
+          to={`/keywords/${keyword.id}`}
+          className="record-expression mt-2 block text-zinc-700 dark:text-zinc-200"
+          tabIndex={-1}
+        >
           <Expression value={keyword.expression} clamp />
         </Link>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-xs text-zinc-500 dark:text-zinc-400">
@@ -78,7 +131,15 @@ function KeywordRow({ keyword, onFavorite }: { keyword: Keyword; onFavorite: () 
           )}
         </p>
       </div>
-      <div className="shrink-0">
+      <div className="record-actions shrink-0">
+        <Link
+          className="record-draft"
+          to={`/inspect?keyword=${keyword.id}`}
+          aria-label={`拆解與試寫：${keyword.theme}`}
+        >
+          <ArrowUpRight className="size-4" />
+          <span>拆解與試寫</span>
+        </Link>
         <FavoriteButton favorite={keyword.favorite} onToggle={onFavorite} />
       </div>
     </li>
@@ -93,6 +154,7 @@ export function Keywords() {
   const debounced = useDebounced(search, 300);
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [view, setView] = useState<"cards" | "index">("cards");
 
   // 搜尋框停下來之後才寫進網址
   useEffect(() => {
@@ -117,29 +179,49 @@ export function Keywords() {
   const toggleFavorite = async (keyword: Keyword) => {
     try {
       const { favorite } = await api.setFavorite(keyword.id, !keyword.favorite);
-      setData((page) => page && { ...page, items: page.items.map((k) => (k.id === keyword.id ? { ...k, favorite } : k)) });
+      setData(
+        (page) =>
+          page && {
+            ...page,
+            items: page.items.map((k) =>
+              k.id === keyword.id ? { ...k, favorite } : k,
+            ),
+          },
+      );
     } catch (e) {
       toast(errorText(e), "error");
     }
   };
 
   const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1;
-  const filtered = Boolean(filter.q || filter.tag || filter.kind || filter.scope !== "all");
+  const filtered = Boolean(
+    filter.q || filter.tag || filter.kind || filter.scope !== "all",
+  );
 
   return (
     <PageBody>
       <PageHeader
         title="語法庫"
-        subtitle="收藏值得重用的搜尋語法。搜尋主題、挑選標籤，或組合下一個查詢。"
+        subtitle="一份語法，一張索引卡。從主題分冊裡，找到值得重用的知識。"
         actions={
           <>
-            <button className="btn btn-secondary" onClick={() => setImporting(true)}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setImporting(true)}
+            >
               <FileUp className="size-4" /> 匯入
             </button>
-            <a className="btn btn-secondary" href={api.exportUrl(query)} download>
+            <a
+              className="btn btn-secondary"
+              href={api.exportUrl(query)}
+              download
+            >
               <Download className="size-4" /> 匯出 CSV
             </a>
-            <button className="btn btn-primary" onClick={() => setCreating(true)}>
+            <button
+              className="btn btn-primary"
+              onClick={() => setCreating(true)}
+            >
               <Plus className="size-4" /> 新增關鍵字
             </button>
           </>
@@ -180,7 +262,11 @@ export function Keywords() {
           </select>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div className="flex rounded-lg bg-zinc-100 p-0.5 text-sm dark:bg-zinc-800" role="tablist" aria-label="範圍">
+          <div
+            className="flex rounded-lg bg-zinc-100 p-0.5 text-sm dark:bg-zinc-800"
+            role="tablist"
+            aria-label="範圍"
+          >
             {SCOPES.map((s) => (
               <button
                 key={s.value}
@@ -197,83 +283,139 @@ export function Keywords() {
               </button>
             ))}
           </div>
-          {tags.data && tags.data.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              {tags.data.slice(0, 12).map((t) => {
-                const active = filter.tag === t.name;
-                return (
-                  <button
-                    key={t.name}
-                    onClick={() => update({ tag: active ? "" : t.name })}
-                    aria-pressed={active}
-                    className={`rounded-md px-1.5 py-0.5 text-xs transition-colors ${
-                      active
-                        ? "bg-brand-600 text-white dark:bg-brand-500 dark:text-zinc-950"
-                        : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                    }`}
-                  >
-                    #{t.name} <span className="opacity-60">{t.count}</span>
-                  </button>
-                );
-              })}
-              {filter.tag && !tags.data.slice(0, 12).some((t) => t.name === filter.tag) && (
-                <button
-                  onClick={() => update({ tag: "" })}
-                  className="inline-flex items-center gap-1 rounded-md bg-brand-600 px-1.5 py-0.5 text-xs text-white dark:bg-brand-500 dark:text-zinc-950"
-                >
-                  #{filter.tag} <X className="size-3" />
-                </button>
-              )}
-            </div>
-          )}
+          <div className="archive-view" role="group" aria-label="檢視方式">
+            <button
+              aria-pressed={view === "cards"}
+              onClick={() => setView("cards")}
+            >
+              <LayoutGrid className="size-3.5" /> 索引卡
+            </button>
+            <button
+              aria-pressed={view === "index"}
+              onClick={() => setView("index")}
+            >
+              <List className="size-3.5" /> 清單
+            </button>
+          </div>
         </div>
       </div>
 
-      {error && <ErrorBanner message={error} />}
-      {loading && !data && <Loading />}
-      {data && (
-        <section className={`card ${loading ? "opacity-70" : ""}`}>
-          <div className="library-caption"><span>EXPRESSION INDEX</span><span>{data.total.toLocaleString()} 個語法 / {filter.sort === "theme" ? "依主題" : filter.sort === "created" ? "最近新增" : "最近更新"}</span></div>
-          {data.items.length === 0 ? (
-            <Empty icon={KeyRound} title={filtered ? "沒有符合條件的關鍵字" : "還沒有關鍵字"}>
-              {filtered ? "換個搜尋的字，或把篩選條件拿掉。" : "按右上角的「新增關鍵字」寫第一個，或從 CSV 匯入。"}
-            </Empty>
-          ) : (
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {data.items.map((k) => (
-                <KeywordRow key={k.id} keyword={k} onFavorite={() => void toggleFavorite(k)} />
-              ))}
-            </ul>
-          )}
-          <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-2.5 text-sm text-zinc-500 sm:px-5 dark:border-zinc-800 dark:text-zinc-400">
-            <span>共 {data.total.toLocaleString()} 個</span>
-            {pages > 1 && (
-              <span className="flex items-center gap-1">
-                <button
-                  className="btn btn-ghost px-1.5"
-                  disabled={filter.page <= 1}
-                  onClick={() => update({ page: filter.page - 1 })}
-                  aria-label="上一頁"
-                >
-                  <ChevronLeft className="size-4" />
-                </button>
-                <span className="tabular-nums">
-                  {filter.page} / {pages}
-                </span>
-                <button
-                  className="btn btn-ghost px-1.5"
-                  disabled={filter.page >= pages}
-                  onClick={() => update({ page: filter.page + 1 })}
-                  aria-label="下一頁"
-                >
-                  <ChevronRight className="size-4" />
-                </button>
-              </span>
-            )}
+      <div className="catalogue-layout">
+        <aside className="subject-index">
+          <div className="subject-index-title">
+            <span>SUBJECT INDEX</span>
+            <h2>主題分冊</h2>
+            <small>依你可讀取的語法編目</small>
           </div>
-        </section>
-      )}
-
+          <button
+            className={!filter.tag ? "active" : ""}
+            onClick={() => update({ tag: "" })}
+            aria-pressed={!filter.tag}
+          >
+            <span>所有主題</span>
+            <span>↗</span>
+          </button>
+          {tags.data?.map((t, index) => (
+            <button
+              key={t.name}
+              className={filter.tag === t.name ? "active" : ""}
+              aria-pressed={filter.tag === t.name}
+              onClick={() =>
+                update({ tag: filter.tag === t.name ? "" : t.name })
+              }
+            >
+              <small>{String(index + 1).padStart(2, "0")}</small>
+              <span>{t.name}</span>
+              <b>{t.count}</b>
+            </button>
+          ))}
+          {tags.error && <p className="hint p-3">{tags.error}</p>}
+          <div className="subject-index-foot">
+            同一份語法可收錄於多個分冊。
+            <Link to="/inspect">開啟語法推敲桌 ↗</Link>
+          </div>
+        </aside>
+        <div className="catalogue-results">
+          {filter.tag && (
+            <div className="catalogue-selected">
+              <span>
+                目前分冊：<strong>{filter.tag}</strong>
+              </span>
+              <button
+                onClick={() => update({ tag: "" })}
+                aria-label="清除主題篩選"
+              >
+                <X className="size-3" /> 清除
+              </button>
+            </div>
+          )}
+          {error && <ErrorBanner message={error} />}
+          {loading && !data && <Loading />}
+          {data && (
+            <section
+              className={`catalogue ${view === "cards" ? "card-view" : "list-view"} ${loading ? "opacity-70" : ""}`}
+            >
+              <div className="library-caption">
+                <span>CATALOGUE / {filter.tag || "全部館藏"}</span>
+                <span>
+                  {data.total.toLocaleString()} 個語法 /{" "}
+                  {filter.sort === "theme"
+                    ? "依主題"
+                    : filter.sort === "created"
+                      ? "最近新增"
+                      : "最近更新"}
+                </span>
+              </div>
+              {data.items.length === 0 ? (
+                <Empty
+                  icon={KeyRound}
+                  title={filtered ? "沒有符合條件的關鍵字" : "還沒有關鍵字"}
+                >
+                  {filtered
+                    ? "換個搜尋的字，或把篩選條件拿掉。"
+                    : "按右上角的「新增關鍵字」寫第一個，或從 CSV 匯入。"}
+                </Empty>
+              ) : (
+                <ul className="catalogue-records">
+                  {data.items.map((k) => (
+                    <KeywordRow
+                      key={k.id}
+                      keyword={k}
+                      onFavorite={() => void toggleFavorite(k)}
+                    />
+                  ))}
+                </ul>
+              )}
+              <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-2.5 text-sm text-zinc-500 sm:px-5 dark:border-zinc-800 dark:text-zinc-400">
+                <span>共 {data.total.toLocaleString()} 個</span>
+                {pages > 1 && (
+                  <span className="flex items-center gap-1">
+                    <button
+                      className="btn btn-ghost px-1.5"
+                      disabled={filter.page <= 1}
+                      onClick={() => update({ page: filter.page - 1 })}
+                      aria-label="上一頁"
+                    >
+                      <ChevronLeft className="size-4" />
+                    </button>
+                    <span className="tabular-nums">
+                      {filter.page} / {pages}
+                    </span>
+                    <button
+                      className="btn btn-ghost px-1.5"
+                      disabled={filter.page >= pages}
+                      onClick={() => update({ page: filter.page + 1 })}
+                      aria-label="下一頁"
+                    >
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </span>
+                )}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
       <KeywordEditor
         open={creating}
         onClose={() => setCreating(false)}
