@@ -327,7 +327,16 @@ impl Host for VaultHost {
                     } else {
                         StatusCode::SERVICE_UNAVAILABLE
                     },
-                    "domain_denied",
+                    if status == StatusCode::BAD_REQUEST
+                        && matches!(
+                            invocation.operation(),
+                            "compile_query" | "inspect_query" | "extract_terms"
+                        )
+                    {
+                        "compile_error"
+                    } else {
+                        "domain_denied"
+                    },
                     value
                         .get("error")
                         .and_then(Value::as_str)

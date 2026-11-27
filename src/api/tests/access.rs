@@ -763,6 +763,54 @@ async fn official_mcp_sdk_exercises_consolidated_compiler_and_analysis_operation
             .await
             .unwrap();
     assert_eq!(attempts, 5);
+    for operation in ["compile_query", "inspect_query", "extract_terms"] {
+        let result = client
+            .call_tool(
+                CallToolRequestParams::new(operation)
+                    .with_arguments(json!({"expression":"a&&b"}).as_object().unwrap().clone()),
+            )
+            .await
+            .unwrap();
+        let value = serde_json::to_value(result).unwrap();
+        assert_eq!(value["isError"], true, "{operation}");
+        assert_eq!(
+            value["structuredContent"]["code"], "compile_error",
+            "{operation}: {value}"
+        );
+        assert_eq!(
+            value["structuredContent"]["error"],
+            es_keyword_query::Query::parse("a&&b")
+                .unwrap_err()
+                .to_string()
+        );
+    }
     client.cancel().await.unwrap();
     server.abort();
+}
+
+#[tokio::test]
+async fn legacy_compiler_http_parser_errors_keep_machine_code_and_message() {
+    let (_dir, state, router) = fixture().await;
+    let (_, cookie) = user(&state, "legacyerrors", "admin").await;
+    let token = key(&router, &cookie, json!(["queries:read"]), json!(["api"])).await;
+    let expected = es_keyword_query::Query::parse("a&&b")
+        .unwrap_err()
+        .to_string();
+    for operation in ["compile_query", "inspect_query", "extract_terms"] {
+        let (status, result) = call(
+            &router,
+            Method::POST,
+            &format!("/api/v1/{operation}"),
+            None,
+            Some(&token),
+            Some(json!({"expression":"a&&b"})),
+        )
+        .await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert_eq!(
+            result,
+            json!({"code":"compile_error", "error":expected}),
+            "{operation}"
+        );
+    }
 }

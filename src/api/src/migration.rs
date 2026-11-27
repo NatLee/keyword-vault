@@ -95,7 +95,7 @@ pub struct MigrationReceipt {
     pub backup: DatabaseFingerprint,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(Clone, PartialEq, Eq, sqlx::FromRow)]
 struct UserRow {
     id: i64,
     username: String,
@@ -107,7 +107,7 @@ struct UserRow {
     account_status: String,
     password_login_enabled: i64,
 }
-#[derive(sqlx::FromRow)]
+#[derive(Clone, PartialEq, Eq, sqlx::FromRow)]
 struct IdentityRow {
     id: String,
     user_id: i64,
@@ -116,7 +116,7 @@ struct IdentityRow {
     linked_at: i64,
     last_login_at: Option<i64>,
 }
-#[derive(sqlx::FromRow)]
+#[derive(Clone, PartialEq, Eq, sqlx::FromRow)]
 struct RegistrationRow {
     id: i64,
     user_id: i64,
@@ -165,7 +165,17 @@ async fn read_connection(path: &Path) -> Result<SqliteConnection> {
     )
     .await?)
 }
-async fn check_schema(conn: &mut SqliteConnection, expected: &[&[u8]]) -> Result<String> {
+#[derive(Clone, Copy)]
+enum DatabaseKind {
+    Compiler,
+    Vault,
+}
+
+async fn check_schema(conn: &mut SqliteConnection, kind: DatabaseKind) -> Result<String> {
+    let expected = match kind {
+        DatabaseKind::Compiler => &SOURCE_MIGRATIONS,
+        DatabaseKind::Vault => &DESTINATION_MIGRATIONS,
+    };
     let migrations: Vec<(i64, Vec<u8>, bool)> =
         sqlx::query_as("SELECT version,checksum,success FROM _sqlx_migrations ORDER BY version")
             .fetch_all(&mut *conn)
@@ -195,6 +205,28 @@ async fn check_schema(conn: &mut SqliteConnection, expected: &[&[u8]]) -> Result
     {
         bail!("Database foreign-key check failed");
     }
+    // Migration receipts alone cannot establish the actual layout: extra triggers
+    // could change account restrictions during INSERT. Build the supported layout
+    // from the same embedded migrations in an isolated in-memory database.
+    let actual = schema_hash(conn).await?;
+    let mut canonical = SqliteConnection::connect("sqlite::memory:").await?;
+    match kind {
+        DatabaseKind::Compiler => {
+            sqlx::migrate!("./compiler-migrations")
+                .run(&mut canonical)
+                .await?
+        }
+        DatabaseKind::Vault => sqlx::migrate!("./migrations").run(&mut canonical).await?,
+    }
+    let supported = schema_hash(&mut canonical).await?;
+    canonical.close().await?;
+    if actual != supported {
+        bail!("Unsupported actual database schema; tables, indexes and triggers must match the supported migrations");
+    }
+    Ok(actual)
+}
+
+async fn schema_hash(conn: &mut SqliteConnection) -> Result<String> {
     let rows=sqlx::query("SELECT type,name,tbl_name,COALESCE(sql,'') AS definition FROM sqlite_schema ORDER BY type,name").fetch_all(&mut *conn).await?;
     let mut hash = Sha256::new();
     for row in rows {
@@ -213,6 +245,73 @@ async fn identities(conn: &mut SqliteConnection) -> Result<Vec<IdentityRow>> {
 }
 async fn registrations(conn: &mut SqliteConnection) -> Result<Vec<RegistrationRow>> {
     Ok(sqlx::query_as("SELECT id,user_id,username,display_name,provider,status,created_at,reviewed_at,reviewed_by,rejection_reason FROM access_registrations ORDER BY id").fetch_all(conn).await?)
+}
+
+// Compare complete account rows, including existing accounts and authentication
+// identities, before commit. Hashes remain internal and are never serialized.
+#[derive(PartialEq, Eq)]
+struct AccountSnapshot {
+    users: Vec<UserRow>,
+    identities: Vec<IdentityRow>,
+    registrations: Vec<RegistrationRow>,
+}
+impl AccountSnapshot {
+    async fn load(conn: &mut SqliteConnection) -> Result<Self> {
+        Ok(Self {
+            users: users(conn).await?,
+            identities: identities(conn).await?,
+            registrations: registrations(conn).await?,
+        })
+    }
+    fn include_import(
+        &mut self,
+        source_users: &[UserRow],
+        source_identities: &[IdentityRow],
+        source_registrations: &[RegistrationRow],
+        report: &MigrationReport,
+    ) {
+        self.users.extend(
+            source_users
+                .iter()
+                .zip(&report.users)
+                .map(|(row, plan)| UserRow {
+                    id: plan.target_id,
+                    ..row.clone()
+                }),
+        );
+        self.identities
+            .extend(
+                source_identities
+                    .iter()
+                    .zip(&report.identities)
+                    .map(|(row, plan)| IdentityRow {
+                        id: plan.target_id.clone(),
+                        user_id: plan.user_id,
+                        ..row.clone()
+                    }),
+            );
+        self.registrations
+            .extend(
+                source_registrations
+                    .iter()
+                    .zip(&report.registrations)
+                    .map(|(row, plan)| RegistrationRow {
+                        id: plan.target_id,
+                        user_id: plan.user_id,
+                        reviewed_by: plan.reviewed_by,
+                        ..row.clone()
+                    }),
+            );
+        self.users.sort_by_key(|row| row.id);
+        self.identities.sort_by(|a, b| a.id.cmp(&b.id));
+        self.registrations.sort_by_key(|row| row.id);
+    }
+    async fn verify(&self, conn: &mut SqliteConnection) -> Result<()> {
+        if &Self::load(conn).await? != self {
+            bail!("Account preservation verification failed; all account changes rolled back");
+        }
+        Ok(())
+    }
 }
 
 fn password_format(user: &UserRow) -> Result<String> {
@@ -257,8 +356,8 @@ pub async fn inspect(source: &Path, destination: &Path) -> Result<MigrationRepor
     let mut dst = read_connection(&destination).await?;
     let source_hash = file_hash(&source)?;
     let destination_hash = file_hash(&destination)?;
-    let source_schema = check_schema(&mut src, &SOURCE_MIGRATIONS).await?;
-    let destination_schema = check_schema(&mut dst, &DESTINATION_MIGRATIONS).await?;
+    let source_schema = check_schema(&mut src, DatabaseKind::Compiler).await?;
+    let destination_schema = check_schema(&mut dst, DatabaseKind::Vault).await?;
     let source_users = users(&mut src).await?;
     let target_users = users(&mut dst).await?;
     let source_identities = identities(&mut src).await?;
@@ -492,7 +591,7 @@ pub async fn apply(report: &MigrationReport, backup: &Path) -> Result<MigrationR
     )?;
     let backup_path = backup.canonicalize()?;
     let mut backup_conn = read_connection(&backup_path).await?;
-    let backup_schema = check_schema(&mut backup_conn, &DESTINATION_MIGRATIONS).await?;
+    let backup_schema = check_schema(&mut backup_conn, DatabaseKind::Vault).await?;
     backup_conn.close().await?;
     if backup_schema != report.destination.schema_sha256 {
         bail!("Backup schema verification failed");
@@ -501,6 +600,13 @@ pub async fn apply(report: &MigrationReport, backup: &Path) -> Result<MigrationR
     let source_users = users(&mut source).await?;
     let source_identities = identities(&mut source).await?;
     let source_registrations = registrations(&mut source).await?;
+    let mut expected_accounts = AccountSnapshot::load(&mut tx).await?;
+    expected_accounts.include_import(
+        &source_users,
+        &source_identities,
+        &source_registrations,
+        report,
+    );
     for (user, plan) in source_users.iter().zip(&report.users) {
         sqlx::query("INSERT INTO users(id,username,display_name,password_hash,role,disabled,created_at,account_status,password_login_enabled)VALUES(?,?,?,?,?,?,?,?,?)")
             .bind(plan.target_id).bind(&user.username).bind(&user.display_name).bind(&user.password_hash).bind(&user.role).bind(user.disabled).bind(&user.created_at).bind(&user.account_status).bind(user.password_login_enabled).execute(&mut *tx).await.context("Account insertion failed; all account changes rolled back")?;
@@ -518,7 +624,7 @@ pub async fn apply(report: &MigrationReport, backup: &Path) -> Result<MigrationR
     if file_hash(&report.source.path)? != report.source.file_sha256 {
         bail!("Source changed while importing; all account changes rolled back");
     }
-    tx.commit().await?;
+    commit_preserving_accounts(tx, &expected_accounts).await?;
     destination.close().await?;
     Ok(MigrationReceipt {
         imported_users: report.users.len(),
@@ -550,4 +656,50 @@ pub fn write_report(path: &Path, report: &MigrationReport) -> Result<()> {
     file.write_all(b"\n")?;
     file.sync_all()?;
     Ok(())
+}
+
+async fn commit_preserving_accounts(
+    mut tx: sqlx::Transaction<'_, sqlx::Sqlite>,
+    expected: &AccountSnapshot,
+) -> Result<()> {
+    expected.verify(&mut tx).await?;
+    tx.commit().await?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn final_account_verification_rolls_back_every_restriction_and_identity_change() {
+        let mut conn = SqliteConnection::connect("sqlite::memory:").await.unwrap();
+        sqlx::migrate!("./migrations").run(&mut conn).await.unwrap();
+        sqlx::raw_sql("INSERT INTO users(id,username,display_name,password_hash,role,disabled,created_at,account_status,password_login_enabled) VALUES(2,'existing','Existing','preserved-hash','admin',0,'today','active',1),(101,'imported','Imported','','member',1,'today','pending',0); INSERT INTO access_identities(id,user_id,provider,subject,linked_at) VALUES('mapped',101,'google','original-subject',1); INSERT INTO access_registrations(id,user_id,username,display_name,provider,status,created_at,reviewed_by) VALUES(29,101,'imported','Imported','google','pending',1,2);").execute(&mut conn).await.unwrap();
+        let expected = AccountSnapshot::load(&mut conn).await.unwrap();
+        for mutation in [
+            "UPDATE users SET disabled=0 WHERE id=101",
+            "UPDATE users SET role='admin' WHERE id=101",
+            "UPDATE users SET account_status='active' WHERE id=101",
+            "UPDATE users SET password_login_enabled=1 WHERE id=101",
+            "UPDATE users SET password_hash='changed' WHERE id=101",
+            "UPDATE users SET disabled=1 WHERE id=2",
+            "UPDATE access_identities SET user_id=2 WHERE id='mapped'",
+            "UPDATE access_identities SET provider='github' WHERE id='mapped'",
+            "UPDATE access_identities SET subject='changed' WHERE id='mapped'",
+            "UPDATE access_registrations SET status='active' WHERE id=29",
+            "UPDATE access_registrations SET reviewed_by=NULL WHERE id=29",
+        ] {
+            let mut tx = conn.begin().await.unwrap();
+            sqlx::query(mutation).execute(&mut *tx).await.unwrap();
+            assert!(
+                commit_preserving_accounts(tx, &expected).await.is_err(),
+                "mutation was committed: {mutation}"
+            );
+            expected.verify(&mut conn).await.unwrap();
+        }
+        let tx = conn.begin().await.unwrap();
+        commit_preserving_accounts(tx, &expected).await.unwrap();
+        conn.close().await.unwrap();
+    }
 }

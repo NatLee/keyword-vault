@@ -1,6 +1,6 @@
 # 舊編譯器帳號移轉
 
-僅支援舊 `es-keyword-query` host 與本版 Vault 的 SQLx migrations 0001–0004；工具核對每份 migration 的 SHA-384、SQLite integrity／foreign-key check，以及實際 schema／整個檔案的 SHA-256。這是帳號匯入，不是整個資料庫替換，也不是 CSV 匯入。
+僅支援舊 `es-keyword-query` host 與本版 Vault 的 SQLx migrations 0001–0004；工具核對每份 migration 的 SHA-384、SQLite integrity／foreign-key check，以及實際 schema／整個檔案的 SHA-256。實際 schema 還須與內建 migration 在隔離記憶體資料庫產生的標準結構完全一致；額外 trigger、索引／欄位或缺少索引都拒絕，即使 migration 紀錄未變。這是帳號匯入，不是整個資料庫替換，也不是 CSV 匯入。
 
 ## 準備
 
@@ -34,7 +34,7 @@ keyword-vault import-compiler \
   --backup /offline/keyword-vault.before-import.db
 ```
 
-工具重新產生完整報告並比較，鎖定目的資料庫後再驗證；任何資料／schema／對照改動都要求重新 dry-run。先建立全新目的備份，驗證 bytes SHA-256、schema 與 integrity，之後才在單一 transaction 插入帳號、identity 與註冊狀態。任何插入失敗會回復整批寫入，已驗證的備份留存供檢查；不會覆寫既有備份。成功回傳 ID 對照與備份指紋。再套用同一報告會因目的指紋改變而拒絕。
+工具重新產生完整報告並比較，鎖定目的資料庫後再驗證；任何資料／schema／對照改動都要求重新 dry-run。先建立全新目的備份，驗證 bytes SHA-256、schema 與 integrity，之後才在單一 transaction 插入帳號、identity 與註冊狀態。提交前逐列比對既有與匯入的帳號、密碼登入旗標／雜湊、角色、停用／審核狀態、identity 所屬帳號／provider／subject，以及註冊與審核者資料。任何資料不一致或插入失敗會回復整批寫入，已驗證的備份留存供檢查；不會覆寫既有備份。成功回傳 ID 對照與備份指紋。再套用同一報告會因目的指紋改變而拒絕。
 
 來源檔案保持不變。Vault 既有帳號、owner/group visibility、關鍵字、標籤、引用、版本與 CSV 行為保持不變。舊 sessions、PAT、OAuth clients／consents／grants／codes／tokens、provider flows、使用量／稽核、註冊事件與註冊 policy 不匯入；報告列出排除筆數，原始資料在舊備份中保留。目的 policy 原樣保留。舊服務無關鍵字資料可匯入；需要搬移 Vault 資料時應走獨立的完整備份復原流程。
 

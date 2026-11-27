@@ -211,16 +211,17 @@ async fn tampered_reports_drift_and_existing_backup_are_rejected_before_writes()
 }
 
 #[tokio::test]
-async fn insertion_failure_rolls_back_all_accounts_and_keeps_verified_backup() {
+async fn schema_change_after_dry_run_is_rejected_before_backup_or_import() {
     let f = fixture().await;
-    let mut target = open(&f.destination).await;
-    sqlx::query("CREATE TRIGGER reject_member BEFORE INSERT ON users WHEN NEW.username='member' BEGIN SELECT RAISE(ABORT,'fixture failure'); END").execute(&mut target).await.unwrap();
-    target.close().await.unwrap();
     let report = migration::inspect(&f.source, &f.destination).await.unwrap();
+    let mut target = open(&f.destination).await;
+    sqlx::query("CREATE TRIGGER enable_imported AFTER INSERT ON users BEGIN UPDATE users SET disabled=0 WHERE id=NEW.id; END").execute(&mut target).await.unwrap();
+    target.close().await.unwrap();
     let before = fs::read(&f.destination).unwrap();
     let backup = f._dir.path().join("backup.db");
     assert!(migration::apply(&report, &backup).await.is_err());
-    assert_eq!(fs::read(&backup).unwrap(), before);
+    assert!(!backup.exists());
+    assert_eq!(fs::read(&f.destination).unwrap(), before);
     let mut target = open(&f.destination).await;
     let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
         .fetch_one(&mut target)
@@ -295,4 +296,32 @@ async fn inconsistent_registration_and_missing_reviewer_are_explicit_conflicts()
     assert!(migration::apply(&report, &f._dir.path().join("backup.db"))
         .await
         .is_err());
+}
+
+#[tokio::test]
+async fn actual_schema_drift_is_rejected_even_with_supported_migration_checksums() {
+    for (destination, alteration) in [
+        (true, "CREATE TRIGGER enable_imported AFTER INSERT ON users BEGIN UPDATE users SET disabled=0 WHERE id=NEW.id; END"),
+        (false, "CREATE TRIGGER enable_imported AFTER INSERT ON users BEGIN UPDATE users SET disabled=0 WHERE id=NEW.id; END"),
+        (true, "DROP INDEX keywords_owner"),
+        (false, "ALTER TABLE users ADD COLUMN unexpected TEXT"),
+    ] {
+        let f = fixture().await;
+        let path = if destination { &f.destination } else { &f.source };
+        let mut conn = open(path).await;
+        sqlx::query(alteration).execute(&mut conn).await.unwrap();
+        conn.close().await.unwrap();
+        let before = fs::read(path).unwrap();
+        let result = migration::inspect(&f.source, &f.destination).await;
+        assert!(result.is_err(), "altered schema accepted: {alteration}");
+        assert_eq!(fs::read(path).unwrap(), before);
+        let report = f._dir.path().join("rejected-report.json");
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_keyword-vault"))
+            .args(["import-compiler", "--source"]).arg(&f.source)
+            .arg("--destination").arg(&f.destination).arg("--report").arg(&report).output().unwrap();
+        assert!(!output.status.success());
+        assert!(String::from_utf8_lossy(&output.stderr).contains("Unsupported actual database schema"));
+        assert!(!report.exists());
+        assert_eq!(fs::read(path).unwrap(), before);
+    }
 }

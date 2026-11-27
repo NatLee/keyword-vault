@@ -26,7 +26,7 @@ Cookie session 使用 `POST /api/tools/inspect`。Body：
 
 `POST /api/v1/inspect_workbench` 與 MCP `inspect_workbench` 使用相同 schema，scope `expressions:read`。既有 `inspect_expression` 的行為、body、輸出與50,000字限制不變。
 
-舊版相容操作為 `compile_query`、`inspect_query`、`extract_terms`，在 `/api/v1/{operation}` 與 MCP 使用獨立 `queries:read` scope。它不會自動加到舊憑證，也不預選於新金鑰表單。Body為 `{expression,precise?,default_slop?}`，上限40,000 Unicode scalars，保留原 host 的英語400語法錯誤及輸出形狀。舊 Cookie `/api/compiler/inspect` 仍可用。所有路徑使用同一個核心；沿用 bearer audience、scope、停用／審核狀態與單次計次。用 `/api/v1/openapi.json` 或 MCP tools/list 取得實際完整 schemas。
+舊版相容操作為 `compile_query`、`inspect_query`、`extract_terms`，在 `/api/v1/{operation}` 與 MCP 使用獨立 `queries:read` scope。它不會自動加到舊憑證，也不預選於新金鑰表單。Body為 `{expression,precise?,default_slop?}`，上限40,000 Unicode scalars，保留原 host 的英語400語法錯誤、`compile_error` 機器代碼及輸出形狀；MCP使用相同代碼與英語訊息的 structured error。舊 Cookie `/api/compiler/inspect` 仍可用。所有路徑使用同一個核心；沿用 bearer audience、scope、停用／審核狀態與單次計次。用 `/api/v1/openapi.json` 或 MCP tools/list 取得實際完整 schemas。
 
 ## 繁體中文預覽
 
