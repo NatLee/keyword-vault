@@ -2198,3 +2198,8 @@ b, strong, h1, h2, h3, h4, h5, h6 { font-weight: 600; }
   padding: 0; margin: 0; overflow: hidden;
   clip-path: inset(50%); white-space: nowrap; border: 0;
 }
+
+/* First account creation uses the existing project identity and spacing. */
+.first-login-note { margin-bottom: 24px; padding: 16px; border: 1px solid currentColor; border-radius: 4px; }
+.first-login-note .eyebrow { margin-bottom: 8px; font-size: 10px; }
+.first-login-note p:last-child { font-size: 12px; line-height: 1.8; }
