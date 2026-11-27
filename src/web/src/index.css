@@ -2177,3 +2177,15 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* User-authored names can be long unbroken strings. Keep them on their paper. */
+.subject-index > button > span:first-of-type {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.record-title,
+.collection-folder > strong,
+.reading-title,
+.accession-entry strong,
+.workspace-heading h1 {
+  overflow-wrap: anywhere;
+}
