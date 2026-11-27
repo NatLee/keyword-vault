@@ -30,7 +30,7 @@ export function Access() {
   const [notice, setNotice] = useState("");
   const [name, setName] = useState("");
   const [days, setDays] = useState(30);
-  const [selected, setSelected] = useState(scopes);
+  const [selected, setSelected] = useState(scopes.filter((scope) => scope !== "queries:read"));
   const [audiences, setAudiences] = useState(["api", "mcp"]);
   const [period, setPeriod] = useState(7);
   const [transport, setTransport] = useState("");

@@ -4,6 +4,7 @@
 set -euo pipefail
 base=${1:-http://127.0.0.1:8686}
 jar=$(mktemp)
+trap 'rm -f "$jar" "$jar.headers" "$jar.setup"' EXIT
 # 每次跑都用新的隨機密碼，不放任何固定密碼在 repo 裡
 pw=$(openssl rand -hex 16)
 json=(-H 'content-type: application/json')
@@ -19,8 +20,15 @@ curl -fsS "$base/keywords/1" | grep -q '<div id="root">'
 # 還沒有帳號：要先建立管理員；沒登入的 API 回 401
 curl -fsS "$base/api/auth/state" | grep -q '"setup_required":true'
 test "$(curl -s -o /dev/null -w '%{http_code}' "$base/api/keywords")" = 401
+ACCESS_SETUP_TOKEN="${ACCESS_SETUP_TOKEN-}" SMOKE_PASSWORD="$pw" python3 - <<'PYSETUP' > "$jar.setup"
+import json, os
+payload = {"username": "admin", "password": os.environ["SMOKE_PASSWORD"]}
+if os.environ["ACCESS_SETUP_TOKEN"]:
+    payload["setup_token"] = os.environ["ACCESS_SETUP_TOKEN"]
+print(json.dumps(payload))
+PYSETUP
 curl -fsS -c "$jar" -D "$jar.headers" "${json[@]}" \
-  -d "{\"username\":\"admin\",\"password\":\"$pw\"}" "$base/api/auth/setup" >/dev/null
+  --data-binary "@$jar.setup" "$base/api/auth/setup" >/dev/null
 grep -qi 'set-cookie: kv_session=.*HttpOnly' "$jar.headers"
 # 只能建立一次
 code=$(curl -s -o /dev/null -w '%{http_code}' "${json[@]}" -d "{\"username\":\"other\",\"password\":\"$pw\"}" "$base/api/auth/setup")

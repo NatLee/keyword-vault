@@ -1,6 +1,6 @@
 # Keyword Consolidation Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Make Keyword Vault the maintained compiler/library/workbench product with Traditional Chinese analysis and a safe migration path.
 
@@ -49,21 +49,21 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** Produces the unchanged `es_keyword_query::{Query,Options,Clause,Error}` under a versioned path dependency; workspace members are compiler, access-kit and API.
 
-- [ ] Step 1: Record `git status`, old compiler source/test hashes and manifests; confirm the feature branch and preserve original repo read-only.
-- [ ] Step 2: Move/copy only owned library assets, preserve license/provenance and existing examples. Consolidate lockfile and root profile settings; update builds to use workspace target paths.
-- [ ] Step 3: Run `cargo test -p es-keyword-query` and `cargo run -p es-keyword-query --example build_atlas -- --check`. Expected: all existing tests pass and atlas matches byte-for-byte.
-- [ ] Step 4: Run `cargo metadata --no-deps --format-version 1`; expected members exactly compiler/access-kit/API and one compiler path. Confirm core source hashes still equal original. Commit the structural change.
+- [x] Step 1: Record `git status`, old compiler source/test hashes and manifests; confirm the feature branch and preserve original repo read-only.
+- [x] Step 2: Move/copy only owned library assets, preserve license/provenance and existing examples. Consolidate lockfile and root profile settings; update builds to use workspace target paths.
+- [x] Step 3: Run `cargo test -p es-keyword-query` and `cargo run -p es-keyword-query --example build_atlas -- --check`. Expected: all existing tests pass and atlas matches byte-for-byte.
+- [x] Step 4: Run `cargo metadata --no-deps --format-version 1`; expected members exactly compiler/access-kit/API and one compiler path. Confirm core source hashes still equal original. Commit the structural change.
 
 ### Task 2: Preserve the CLI and standalone MSRV
 
-**Files:** `crates/es-keyword-query/examples/{inspect.rs,support/mod.rs,build_atlas.rs}`, `scripts/check-compiler.sh`, `.github/workflows/ci.yml`.
+**Files:** `crates/es-keyword-query/examples/{inspect.rs,support/mod.rs,build_atlas.rs}`, `scripts/check-compiler.py`, `.github/workflows/ci.yml`.
 
 **Interfaces:** Original CLI positional expression plus `--raw`/`--slop=N`; JSON valid/normalized/terms/clauses; exit codes 0/1/2. No application initialization.
 
-- [ ] Step 1: Add a focused shell/CLI verification that checks `inspect '(a|b)&c'` output, `a&&b` exit 1 and an unknown flag exit 2.
-- [ ] Step 2: Run the copied CLI commands and fix only moved-path assumptions. Assert `query_string == '("a" OR "b") AND "c"'` and raw `a*` remains `a*`.
-- [ ] Step 3: Add a script that copies the compiler package into a temporary directory outside the workspace, removes inherited workspace context/lock, and runs its tests with Rust 1.74.0. Keep the package manifest self-contained.
-- [ ] Step 4: Run the CLI script plus isolated MSRV check. Expected: all pass without Axum/SQLx/jieba in the compiler runtime dependency tree. Commit CLI/MSRV packaging evidence.
+- [x] Step 1: Add a focused shell/CLI verification that checks `inspect '(a|b)&c'` output, `a&&b` exit 1 and an unknown flag exit 2.
+- [x] Step 2: Run the copied CLI commands and fix only moved-path assumptions. Assert `query_string == '("a" OR "b") AND "c"'` and raw `a*` remains `a*`.
+- [x] Step 3: Add a script that copies the compiler package into a temporary directory outside the workspace, removes inherited workspace context/lock, and runs its tests with Rust 1.74.0. Keep the package manifest self-contained.
+- [x] Step 4: Run the CLI script plus isolated MSRV check. Expected: all pass without Axum/SQLx/jieba in the compiler runtime dependency tree. Commit CLI/MSRV packaging evidence.
 
 ### Task 3: Add structured workbench inspection and grouped filters
 
@@ -71,14 +71,14 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** `InspectInput { expression:String, filter_expression:Option<String>, precise:Option<bool>, default_slop:Option<u32> }`; `workbench::inspect(input: InspectInput, default_slop:u32) -> AppResult<Value>` returns the spec's valid/error artifact. `/api/tools/inspect` requires `CurrentUser`.
 
-- [ ] Step 1: Write tests `filter_groups_both_sides`, `options_do_not_mutate_source`, `filter_errors_identify_source`, `combined_length_is_bounded`. Core assertion:
+- [x] Step 1: Write tests `filter_groups_both_sides`, `options_do_not_mutate_source`, `filter_errors_identify_source`, `combined_length_is_bounded`. Core assertion:
   ```rust
   assert_eq!(result["inspection"]["query_string"], r#"("shop" OR "cafe") AND ("tea" OR "coffee")"#);
   assert_eq!(result["inspection"]["expression"], "tea|coffee");
   ```
-- [ ] Step 2: Run `cargo test -p keyword-vault --test workbench`; expected initial failure because route/module is absent.
-- [ ] Step 3: Implement one parse per source with existing library options, separate query/filter inspection and `filtered_by`. Keep old `/tools/check` unchanged.
-- [ ] Step 4: Run the focused tests and existing API anatomy tests; expected success, exact options/limits/errors. Commit.
+- [x] Step 2: Run `cargo test -p keyword-vault --test workbench`; expected initial failure because route/module is absent.
+- [x] Step 3: Implement one parse per source with existing library options, separate query/filter inspection and `filtered_by`. Keep old `/tools/check` unchanged.
+- [x] Step 4: Run the focused tests and existing API anatomy tests; expected success, exact options/limits/errors. Commit.
 
 ### Task 4: Register compiler compatibility and new workbench operation
 
@@ -86,10 +86,10 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** `compiler_compat::Input` and `evaluate(input, operation, default_slop)->AppResult<Value>` match the old server; `operations()->Vec<DomainOperation>` declares the three `queries:read` tools. `inspect_workbench` consumes Task 3 input with `expressions:read`.
 
-- [ ] Step 1: Add golden tests for `compile_query`, `extract_terms`, `inspect_query`, cookie `/api/compiler/inspect`, denied unknown fields, 40,000 limit and English syntax HTTP errors. Test old `inspect_expression` remains `valid:false` with Chinese error.
-- [ ] Step 2: Run targeted access tests; expected failures for absent operations/scope.
-- [ ] Step 3: Port the exact legacy compiler adapter; route it through existing access-kit invocation once. Expose `queries:read` in Connections without granting it automatically.
-- [ ] Step 4: Verify HTTP plus official MCP SDK invocation, wrong scope/audience/disabled user rejection and exactly one daily attempt. Run `cargo test -p keyword-vault --test access`; commit.
+- [x] Step 1: Add golden tests for `compile_query`, `extract_terms`, `inspect_query`, cookie `/api/compiler/inspect`, denied unknown fields, 40,000 limit and English syntax HTTP errors. Test old `inspect_expression` remains `valid:false` with Chinese error.
+- [x] Step 2: Run targeted access tests; expected failures for absent operations/scope.
+- [x] Step 3: Port the exact legacy compiler adapter; route it through existing access-kit invocation once. Expose `queries:read` in Connections without granting it automatically.
+- [x] Step 4: Verify HTTP plus official MCP SDK invocation, wrong scope/audience/disabled user rejection and exactly one daily attempt. Run `cargo test -p keyword-vault --test access`; commit.
 
 ### Task 5: Integrate options, composition, export and explicit save semantics
 
@@ -97,10 +97,10 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** `api.inspect(input: InspectInput):Promise<InspectionResult>` mirrors Task 3. `InspectionArtifact` is exported unchanged; existing `api.createKeyword` saves source only.
 
-- [ ] Step 1: Write tests for raw/slop/filter controls, outdated requests, export data equality, saved original source and explicit apply-filter. Assert `createKeyword.expression === source` until the apply-filter button is clicked.
-- [ ] Step 2: Run `pnpm test -- --maxWorkers=2 src/pages/Inspector.test.tsx`; expected new controls absent.
-- [ ] Step 3: Add controls and snapshot all request fields in the stale guard; display source/filter structures separately. JSON download uses current response only. Apply-filter writes `(<filter>)&(<source>)` and clears filter. Use the exact save notice from the spec.
-- [ ] Step 4: Run Inspector/QueryAnatomy/SyntaxCheck tests and `pnpm build`; expected all pass. Commit.
+- [x] Step 1: Write tests for raw/slop/filter controls, outdated requests, export data equality, saved original source and explicit apply-filter. Assert `createKeyword.expression === source` until the apply-filter button is clicked.
+- [x] Step 2: Run `pnpm exec vitest run --maxWorkers=2 src/pages/Inspector.test.tsx`; expected new controls absent.
+- [x] Step 3: Add controls and snapshot all request fields in the stale guard; display source/filter structures separately. JSON download uses current response only. Apply-filter writes `(<filter>)&(<source>)` and clears filter. Use the exact save notice from the spec.
+- [x] Step 4: Run Inspector/QueryAnatomy/SyntaxCheck tests and `pnpm build`; expected all pass. Commit.
 
 ### Task 6: Add versioned Traditional Chinese analyzer and bounded dictionaries
 
@@ -108,10 +108,10 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** `Analyzer::load(custom:Option<&Path>)->anyhow::Result<Analyzer>`; `analyze(&self, input:AnalysisInput)->AppResult<AnalysisResult>`. Input/result structs exactly match spec. `AppState` holds one immutable analyzer and a two-permit semaphore.
 
-- [ ] Step 1: Test custom `臺積電` remains one token, `𠮷野家`/emoji offset roundtrip, fullwidth normalization, proximity/exclusion leaves, escaped operators, search overlap, raw/reference rejection and all dictionary bounds. Assertion for every returned token: `leaf.text.chars().skip(start).take(end-start).collect::<String>() == token.text`.
-- [ ] Step 2: Run `cargo test -p keyword-vault analysis`; expected missing module/type.
-- [ ] Step 3: Pin jieba-rs 0.11.0; fetch the exact upstream dictionary revision and license, record SHA-256, load Taiwan/custom entries after validation. Use HMM false and scalar offsets; reject over-limit output. Keep source text/compiler output unchanged.
-- [ ] Step 4: Run focused tests and core regression suite; verify analysis dependency is absent from core manifest. Commit data provenance and implementation.
+- [x] Step 1: Test custom `臺積電` remains one token, `𠮷野家`/emoji offset roundtrip, fullwidth normalization, proximity/exclusion leaves, escaped operators, search overlap, raw/reference rejection and all dictionary bounds. Assertion for every returned token: `leaf.text.chars().skip(start).take(end-start).collect::<String>() == token.text`.
+- [x] Step 2: Run `cargo test -p keyword-vault analysis`; expected missing module/type.
+- [x] Step 3: Pin jieba-rs 0.11.0; fetch the exact upstream dictionary revision and license, record SHA-256, load Taiwan/custom entries after validation. Use HMM false and scalar offsets; reject over-limit output. Keep source text/compiler output unchanged.
+- [x] Step 4: Run focused tests and core regression suite; verify analysis dependency is absent from core manifest. Commit data provenance and implementation.
 
 ### Task 7: Expose analysis through API/MCP and the workbench
 
@@ -119,10 +119,10 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** `/api/tools/analyze`, `analyze_expression` scope `expressions:read`, `api.analyze(input):Promise<AnalysisResult>` consume Task 6; no caller paths or identity arguments.
 
-- [ ] Step 1: Write HTTP/MCP unauthorized/scope/audit tests and UI tests proving preview leaves source unchanged, raw mode explanation, mode/identity display and stale result clearing.
-- [ ] Step 2: Run targeted tests and observe missing route/UI failures.
-- [ ] Step 3: Run CPU analysis in `spawn_blocking` under the two-permit bound. Add separate token panel and literal copy actions; do not auto-generate AND/OR or mutate source. Display the exact local-versus-ES notice.
-- [ ] Step 4: Run analysis/access/UI tests and build; commit.
+- [x] Step 1: Write HTTP/MCP unauthorized/scope/audit tests and UI tests proving preview leaves source unchanged, raw mode explanation, mode/identity display and stale result clearing.
+- [x] Step 2: Run targeted tests and observe missing route/UI failures.
+- [x] Step 3: Run CPU analysis in `spawn_blocking` under the two-permit bound. Add separate token panel and literal copy actions; do not auto-generate AND/OR or mutate source. Display the exact local-versus-ES notice.
+- [x] Step 4: Run analysis/access/UI tests and build; commit.
 
 ### Task 8: Carry deployment-token protection and offline bootstrap
 
@@ -130,10 +130,10 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** `SetupToken` redacted/constant-time validated config; peer comes from actual Axum `ConnectInfo<SocketAddr>`; `keyword-vault bootstrap <username>` reads password stdin and creates only the first administrator.
 
-- [ ] Step 1: Port old server first-login/bootstrap fixtures. Test no token on remote fails; matching token succeeds; forged `X-Forwarded-For` cannot bypass; true loopback succeeds; simultaneous setup produces one admin; malformed configured token fails startup; existing users boot without token.
-- [ ] Step 2: Run focused tests; expected remote setup currently succeeds and CLI is absent.
-- [ ] Step 3: Port guard and secret handling, add actual socket connect info, booleans/UI field, password-stdin command without listener, Compose env. Update isolated smoke setup to provide its generated token.
-- [ ] Step 4: Run first-login/registration/API suites and browser first-login tests; commit.
+- [x] Step 1: Port old server first-login/bootstrap fixtures. Test no token on remote fails; matching token succeeds; forged `X-Forwarded-For` cannot bypass; true loopback succeeds; simultaneous setup produces one admin; malformed configured token fails startup; existing users boot without token.
+- [x] Step 2: Run focused tests; expected remote setup currently succeeds and CLI is absent.
+- [x] Step 3: Port guard and secret handling, add actual socket connect info, booleans/UI field, password-stdin command without listener, Compose env. Update isolated smoke setup to provide its generated token.
+- [x] Step 4: Run first-login/registration/API suites and browser first-login tests; commit.
 
 ### Task 9: Build the read-only migration report
 
@@ -141,10 +141,10 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** `MigrationReport` version 1; `migration::inspect(source:&Path,destination:&Path)->anyhow::Result<MigrationReport>`; CLI `import-compiler --source ... --destination ... --report ...` writes JSON exclusively, defaults to dry-run.
 
-- [ ] Step 1: Create disposable compiler/Vault DB fixtures with schema checksums, Argon2 hashes, active/pending/rejected/disabled/OAuth-only accounts and identities. Assert dry-run leaves bytes/data unchanged, proposes complete ID mappings, excludes tokens and identifies NOCASE username/provider conflicts.
-- [ ] Step 2: Run `cargo test -p keyword-vault --test compiler_migration`; expected absent module/command.
-- [ ] Step 3: Validate canonical unequal paths, existing supported schemas, integrity, no uncheckpointed WAL, supported Argon2id v19 parameters/statuses and complete identity/reviewer references. Compute schema/content fingerprints; never run migrations or writable pragmas on source. Reports omit secrets.
-- [ ] Step 4: Run tests including unsupported schema/hash/state and dangling references; commit.
+- [x] Step 1: Create disposable compiler/Vault DB fixtures with schema checksums, Argon2 hashes, active/pending/rejected/disabled/OAuth-only accounts and identities. Assert dry-run leaves bytes/data unchanged, proposes complete ID mappings, excludes tokens and identifies NOCASE username/provider conflicts.
+- [x] Step 2: Run `cargo test -p keyword-vault --test compiler_migration`; expected absent module/command.
+- [x] Step 3: Validate canonical unequal paths, existing supported schemas, integrity, no uncheckpointed WAL, supported Argon2id v19 parameters/statuses and complete identity/reviewer references. Compute schema/content fingerprints; never run migrations or writable pragmas on source. Reports omit secrets.
+- [x] Step 4: Run tests including unsupported schema/hash/state and dangling references; commit.
 
 ### Task 10: Apply reviewed migration atomically with a verified backup
 
@@ -152,10 +152,10 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** `migration::apply(report:&MigrationReport,backup:&Path)->anyhow::Result<MigrationReceipt>`; receipt includes committed ID map and verified backup digest, never credentials. CLI `import-compiler --apply <report.json> --backup <new-backup.db>`.
 
-- [ ] Step 1: Tests: report tampering/drift refused, backup exists refused, partial insert rollback, unsupported identity conflicts refused, all source account restrictions preserved, existing destination rows untouched and reapply rejected. Assert source fingerprint remains equal and backup restores exact preimport destination.
-- [ ] Step 2: Run migration tests; expected apply missing.
-- [ ] Step 3: Recompute report against both selected DBs, compare immutable fingerprint/map/conflict fields, create/verify exclusive backup and lock destination writes while rechecking and inserting all rows. Copy only users/identities/registration state using explicit mapped IDs; exclude auth artifacts. On any error rollback and preserve backup/source.
-- [ ] Step 4: Run full migration suite and document stop/checkpoint/backup/dry-run/apply/recovery steps plus explicit credential exclusions. Commit.
+- [x] Step 1: Tests: report tampering/drift refused, backup exists refused, partial insert rollback, unsupported identity conflicts refused, all source account restrictions preserved, existing destination rows untouched and reapply rejected. Assert source fingerprint remains equal and backup restores exact preimport destination.
+- [x] Step 2: Run migration tests; expected apply missing.
+- [x] Step 3: Recompute report against both selected DBs, compare immutable fingerprint/map/conflict fields, create/verify exclusive backup and lock destination writes while rechecking and inserting all rows. Copy only users/identities/registration state using explicit mapped IDs; exclude auth artifacts. On any error rollback and preserve backup/source.
+- [x] Step 4: Run full migration suite and document stop/checkpoint/backup/dry-run/apply/recovery steps plus explicit credential exclusions. Commit.
 
 ### Task 11: Complete integration, documentation and release evidence
 
@@ -163,11 +163,11 @@ Tasks 1–4 establish backend interfaces; Task 5 consumes them. Tasks 6–7 add 
 
 **Interfaces:** One default Compose entry, workspace checks and documented compatible library/CLI/API/MCP; parent receives verified commit SHA plus remaining limits.
 
-- [ ] Step 1: Run `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked`, CLI/atlas/MSRV checks, frontend tests with two workers and build. Expected all green; record actual counts/commands.
-- [ ] Step 2: Coordinate Docker build with parent, build both images, run `docker compose config` and `nginx -t`; start a unique temporary project with fresh volumes/token. Verify real nginx first-login, registration, workbench/API/MCP, existing DB migration and preserved named-volume configuration.
-- [ ] Step 3: Capture actual desktop/mobile light/dark workbench and first-login via the approved browser skill/tool; inspect screenshots and fix functional/layout issues. No real provider credentials or production data.
-- [ ] Step 4: Update docs with exact commands, snapshots/dictionary provenance, save semantics, local analysis limitations, migration exclusions and future old-repo redirect. Record test evidence honestly; remove only owned temporary test resources.
-- [ ] Step 5: Self-review spec coverage, run affected focused checks after fixes, commit locally and send parent the branch/head/evidence. Parent performs final independent review and owns old-repo redirect/archive after all checks. Do not push or archive here.
+- [x] Step 1: Run `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked`, CLI/atlas/MSRV checks, frontend tests with two workers and build. Expected all green; record actual counts/commands.
+- [x] Step 2: Coordinate Docker build with parent, build both images, run `docker compose config` and `nginx -t`; start a unique temporary project with fresh volumes/token. Verify real nginx first-login, registration, workbench/API/MCP, existing DB migration and preserved named-volume configuration.
+- [x] Step 3: Capture actual desktop/mobile light/dark workbench and first-login via the authorized isolated Playwright regression/capture harness; inspect screenshots and fix functional/layout issues. No real provider credentials or production data.
+- [x] Step 4: Update docs with exact commands, snapshots/dictionary provenance, save semantics, local analysis limitations, migration exclusions and future old-repo redirect. Record test evidence honestly; remove only owned temporary test resources.
+- [x] Step 5: Self-review spec coverage, run affected focused checks after fixes, commit locally and send parent the branch/head/evidence. Parent performs final independent review and owns old-repo redirect/archive after all checks. Do not push or archive here.
 
 ## Self-review record
 

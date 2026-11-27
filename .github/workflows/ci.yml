@@ -85,6 +85,7 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Smoke test
         run: |
-          docker run -d --name kv -p 8686:8686 keyword-vault:ci
+          export ACCESS_SETUP_TOKEN=$(openssl rand -hex 32)
+          docker run -d --name kv -p 8686:8686 -e ACCESS_SETUP_TOKEN keyword-vault:ci
           bash docs/smoke-test.sh http://127.0.0.1:8686
           docker logs kv
