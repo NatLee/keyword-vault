@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  ShieldCheck,
   GitCompareArrows,
   KeyRound,
   LayoutDashboard,
@@ -32,6 +33,7 @@ const NAV: NavItem[] = [
   { to: "/compare", label: "語法比對", icon: GitCompareArrows },
   { to: "/guide", label: "語法說明", icon: BookOpen },
   { to: "/settings", label: "設定", icon: Settings },
+  { to: "/connections", label: "連線與存取", icon: ShieldCheck },
 ];
 
 function Brand() {

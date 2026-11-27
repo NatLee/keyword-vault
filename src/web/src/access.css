@@ -1,0 +1,289 @@
+.access-desk {
+  max-width: 1280px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+.access-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 32px;
+}
+.access-heading h1,
+.access-consent h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 8px 0 16px;
+}
+.access-section {
+  border: 1px solid var(--vault-rule);
+  background: var(--archive-sheet);
+  margin-bottom: 24px;
+  padding: 24px;
+  min-width: 0;
+}
+.access-section > header {
+  border-bottom: 1px solid var(--vault-rule);
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+.access-section > header > span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--archive-ochre);
+}
+.access-section h2 {
+  font-size: 24px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.access-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.access-section p {
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.access-providers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+.access-providers article {
+  border-left: 4px solid var(--vault-rule);
+  padding-left: 16px;
+}
+.access-credentials {
+  border-top: 4px solid var(--archive-ochre);
+}
+.access-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 32px;
+}
+.access-columns form {
+  background: var(--archive-surface);
+  padding: 20px;
+}
+.access-columns .label:not(:first-child) {
+  margin-top: 16px;
+}
+.access-desk fieldset {
+  margin: 20px 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.access-desk legend {
+  padding: 0;
+  font-weight: 600;
+}
+.access-desk fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.access-record {
+  border-bottom: 1px solid var(--vault-rule);
+  padding: 16px 0;
+  overflow-wrap: anywhere;
+}
+.access-empty {
+  border: 1px dashed var(--vault-rule);
+  padding: 24px;
+}
+.access-secret {
+  position: fixed;
+  z-index: 60;
+  inset: auto 24px 24px;
+  max-width: 900px;
+  margin: auto;
+  border: 2px solid var(--archive-ochre);
+  background: var(--archive-sheet);
+  padding: 24px;
+}
+.access-secret code {
+  display: block;
+  overflow-wrap: anywhere;
+  background: var(--archive-surface);
+  padding: 16px;
+  margin: 16px 0;
+  user-select: all;
+}
+.access-secret > div {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.access-notice {
+  padding: 16px;
+  border-left: 4px solid var(--archive-ochre);
+  background: var(--archive-surface);
+  margin-bottom: 24px;
+}
+.access-ledger {
+  background: var(--archive-surface);
+}
+.access-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+}
+.access-filters label {
+  display: block;
+  font-size: 12px;
+}
+.access-filters .input {
+  margin-top: 8px;
+}
+.access-totals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.access-totals dd {
+  font-size: 32px;
+  font-family: var(--font-mono);
+  margin: 4px 0 0;
+}
+.access-bars {
+  display: grid;
+  gap: 4px;
+  height: 160px;
+  border-bottom: 1px solid var(--vault-rule);
+  margin: 24px 0 48px;
+}
+.access-bars > div {
+  position: relative;
+  display: flex;
+  align-items: end;
+  min-width: 0;
+}
+.access-bars span {
+  display: block;
+  width: 100%;
+  background: var(--archive-ochre);
+}
+.access-bars small {
+  position: absolute;
+  top: calc(100% + 8px);
+  font: 11px var(--font-mono);
+  white-space: nowrap;
+  transform: rotate(-45deg);
+  transform-origin: left;
+}
+.access-bars > div:not(:nth-child(5n + 1)) small {
+  display: none;
+}
+.access-table {
+  overflow-x: auto;
+}
+.access-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.access-table th,
+.access-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--vault-rule);
+  text-align: left;
+  font-size: 12px;
+}
+.access-table th {
+  font-weight: 600;
+}
+.access-table code {
+  overflow-wrap: anywhere;
+}
+.access-client-form {
+  display: grid;
+  gap: 16px;
+}
+.access-client-form label {
+  display: grid;
+  gap: 8px;
+}
+.access-consent {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 32px;
+  border: 1px solid var(--vault-rule);
+  border-top: 4px solid var(--archive-ochre);
+  background: var(--archive-sheet);
+}
+.access-consent dl {
+  margin: 24px 0;
+}
+.access-consent dt {
+  font-weight: 600;
+  margin-top: 16px;
+}
+.access-consent dd {
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+.access-consent ul,
+.access-desk ul {
+  padding-left: 20px;
+}
+.access-consent form {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+}
+.provider-login {
+  border-top: 1px solid var(--vault-rule);
+  margin-top: 24px;
+  padding-top: 20px;
+}
+.provider-login > div {
+  margin: 12px 0;
+}
+.provider-login small {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+}
+@media (max-width: 767px) {
+  .access-desk {
+    margin: 24px auto;
+    padding: 0 16px;
+  }
+  .access-heading {
+    display: block;
+  }
+  .access-heading > button {
+    margin-top: 16px;
+  }
+  .access-section {
+    padding: 16px;
+  }
+  .access-providers,
+  .access-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .access-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .access-secret {
+    inset: auto 16px 16px;
+    padding: 16px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .access-consent {
+    margin: 24px 16px;
+    padding: 24px;
+  }
+}

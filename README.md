@@ -269,6 +269,31 @@ KV_QA_URL=http://localhost:5173 KV_QA_PASSWORD='<demo password>' python docs/cap
 
 </details>
 
+## Account connections, API and MCP
+
+Use the existing password setup/login and visit **連線與存取**. Existing account IDs, owner/public/group visibility and expression limits remain authoritative for API and MCP. A private record does not become visible simply because the caller is an administrator. Group removal and account disable take effect on the next invocation.
+
+The canonical default is `http://127.0.0.1:8686`. Set `ACCESS_PUBLIC_URL` to the exact browser origin, including its port. For Vite development use `ACCESS_PUBLIC_URL=http://localhost:5173` on the backend; Vite proxies `/api`, `/oauth`, `/.well-known` and `/mcp` without rewriting the browser Host.
+
+`ACCESS_PUBLIC_URL` is the canonical origin used for issuer, resource, callback and same-origin checks. Use HTTPS in deployment; HTTPS forces Secure cookies. Configure GitHub with `ACCESS_GITHUB_CLIENT_ID` / `ACCESS_GITHUB_CLIENT_SECRET`, and Google with `ACCESS_GOOGLE_CLIENT_ID` / `ACCESS_GOOGLE_CLIENT_SECRET`. Register these exact callback URLs with the providers:
+
+- `{origin}/oauth/callback/github`
+- `{origin}/oauth/callback/google`
+
+Sign into an existing local account first and link its provider identity in Connections. Provider login requires an existing binding; there is no automatic signup or email-based account merge. Missing provider configuration produces disabled native buttons with an explanation. Disconnecting cannot remove the final login method.
+
+Connections creates a personal key with explicit scope (`keywords:read / expressions:read`), audience (`{origin}/api/v1` and/or `{origin}/mcp`) and expiry. Copy its raw value once; closing the panel removes it from the UI, and it is never stored in browser storage. Revoke keys and OAuth grants from the same page. Only cookie sessions can manage connections, clients and consent.
+
+Domain operations are `search_keywords`, `get_keyword`, `inspect_expression`, `compare_expressions`. API calls use `POST /api/v1/{operation}`, JSON arguments and `Authorization: Bearer <key-or-access-token>`; `/api/v1/openapi.json` describes the fixed schemas. No caller-supplied destination URL or identity header is supported. MCP uses Streamable HTTP at `/mcp`, negotiated version **2026-07-28**, discovery and normal SDK tool calls (no custom initialize payload). OAuth clients discover metadata, use authorization code + PKCE S256, exact resource/audience and the native immutable consent form; administrators register approved client redirect URIs in Connections.
+
+Usage shows real UTC daily counts for 7/30/90 days, outcomes, transports and pending attempts. A real domain operation records one attempt across API/MCP; discovery, management and rejected credentials do not inflate usage. Detailed audit retention is 90 days. Event payloads omit raw keys, tokens and domain arguments/results. Legacy HTTP spans record method and matched route patterns; access routes and internal dispatch avoid payload tracing.
+
+![Personal key metadata after the raw value was closed](docs/images/access-01.png)
+![Actual local API and MCP usage](docs/images/access-02.png)
+![Native OAuth consent](docs/images/access-03.png)
+
+These are real local workflows with synthetic domain data and the feature-gated loopback provider, including signed Google OIDC verification. They do not claim live provider registration. [Access verification and reproduction](docs/access-verification.md) records tests, screenshot provenance and remaining deployment checks.
+
 ## 授權
 
 [MIT](LICENSE) © Nat Lee

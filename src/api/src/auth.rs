@@ -300,6 +300,15 @@ impl FromRequestParts<AppState> for CurrentUser {
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
         let unauthorized = || AppError::Unauthorized("請先登入".into());
+        if let Some(trusted) = parts.extensions.get::<access_kit::TrustedPrincipal>() {
+            return sqlx::query_as::<_, CurrentUser>(
+                "SELECT id, username, display_name, role FROM users WHERE id=? AND disabled=0",
+            )
+            .bind(trusted.user_id())
+            .fetch_optional(&state.db)
+            .await?
+            .ok_or_else(unauthorized);
+        }
         let token = read_cookie(&parts.headers, COOKIE_NAME).ok_or_else(unauthorized)?;
         user_for_token(&state.db, &token)
             .await?

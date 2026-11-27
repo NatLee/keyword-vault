@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use keyword_vault::{app, auth, build_state, demo, Config};
 use tokio::net::TcpListener;
-use tracing_subscriber::EnvFilter;
+use tracing_subscriber::{prelude::*, EnvFilter};
 
 const USAGE: &str = "用法：
   keyword-vault                          啟動伺服器
@@ -13,9 +13,16 @@ const USAGE: &str = "用法：
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
+    // SDK debug events may include tool arguments/results. This filter cannot
+    // be overridden by a more-specific RUST_LOG directive.
+    tracing_subscriber::registry()
+        .with(
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info,sqlx=warn")),
+        )
+        .with(
+            tracing_subscriber::fmt::layer().with_filter(tracing_subscriber::filter::filter_fn(
+                |metadata| !metadata.target().starts_with("rmcp"),
+            )),
         )
         .init();
 
