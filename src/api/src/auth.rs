@@ -140,8 +140,8 @@ pub fn validate_username(name: &str) -> AppResult<()> {
 
 pub fn clean_display_name(name: &str) -> AppResult<String> {
     let name = name.trim();
-    if name.is_empty() || name.chars().count() > 40 {
-        return Err(AppError::bad("顯示名稱要 1 到 40 個字元"));
+    if name.is_empty() || name.chars().count() > 100 {
+        return Err(AppError::bad("顯示名稱要 1 到 100 個字元"));
     }
     Ok(name.to_owned())
 }
@@ -197,7 +197,7 @@ pub async fn create_user(
 pub async fn set_password(db: &SqlitePool, user_id: i64, password: &str) -> AppResult<()> {
     validate_password(password)?;
     let hash = hash_password(password.to_owned()).await?;
-    sqlx::query("UPDATE users SET password_hash = ? WHERE id = ?")
+    sqlx::query("UPDATE users SET password_hash = ?, password_login_enabled = 1 WHERE id = ?")
         .bind(hash)
         .bind(user_id)
         .execute(db)
@@ -212,15 +212,19 @@ pub async fn create_session(db: &SqlitePool, user_id: i64) -> Result<String> {
         .bind(db::format_time(now))
         .execute(db)
         .await?;
-    sqlx::query(
-        "INSERT INTO sessions (token_hash, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)",
+    let inserted = sqlx::query(
+        "INSERT INTO sessions (token_hash, user_id, expires_at, created_at) SELECT ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM users WHERE id=? AND disabled=0 AND account_status='active')",
     )
     .bind(sha256_hex(&token))
     .bind(user_id)
     .bind(db::format_time(now + chrono::Duration::days(SESSION_DAYS)))
     .bind(db::format_time(now))
+    .bind(user_id)
     .execute(db)
     .await?;
+    if inserted.rows_affected() != 1 {
+        return Err(anyhow!("Account is not active"));
+    }
     Ok(token)
 }
 
@@ -249,7 +253,7 @@ async fn user_for_token(db: &SqlitePool, token: &str) -> Result<Option<CurrentUs
     let user = sqlx::query_as::<_, CurrentUser>(
         "SELECT u.id, u.username, u.display_name, u.role
          FROM sessions s JOIN users u ON u.id = s.user_id
-         WHERE s.token_hash = ? AND s.expires_at > ? AND u.disabled = 0",
+         WHERE s.token_hash = ? AND s.expires_at > ? AND u.disabled = 0 AND u.account_status = 'active'",
     )
     .bind(sha256_hex(token))
     .bind(db::now())
@@ -302,7 +306,7 @@ impl FromRequestParts<AppState> for CurrentUser {
         let unauthorized = || AppError::Unauthorized("請先登入".into());
         if let Some(trusted) = parts.extensions.get::<access_kit::TrustedPrincipal>() {
             return sqlx::query_as::<_, CurrentUser>(
-                "SELECT id, username, display_name, role FROM users WHERE id=? AND disabled=0",
+                "SELECT id, username, display_name, role FROM users WHERE id=? AND disabled=0 AND account_status='active'",
             )
             .bind(trusted.user_id())
             .fetch_optional(&state.db)
