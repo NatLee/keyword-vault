@@ -2,6 +2,10 @@ import type {
   Account,
   AuthState,
   CheckResult,
+  InspectInput,
+  InspectionResult,
+  AnalysisInput,
+  AnalysisResult,
   Comment,
   DiffResult,
   Group,
@@ -125,5 +129,7 @@ export const api = {
   stats: () => get<Stats>("/stats"),
 
   check: (expression: string, precise = true) => post<CheckResult>("/tools/check", { expression, precise }),
+  inspect: (input: InspectInput) => post<InspectionResult>("/tools/inspect", input),
+  analyze: (input: AnalysisInput) => post<AnalysisResult>("/tools/analyze", input),
   diff: (a: string, b: string) => post<DiffResult>("/tools/diff", { a, b }),
 };

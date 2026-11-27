@@ -33,6 +33,7 @@ impl TestApp {
             public_origin: None,
             cookie_secure: false,
             default_slop: 20,
+            segmentation_dict: None,
         };
         let state = build_state(config).await.unwrap();
         Self {

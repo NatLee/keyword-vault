@@ -151,6 +151,44 @@ export type CheckResult =
   | { valid: true; query_string: string; terms: string[]; clauses: Clause[] }
   | { valid: false; error: { message: string; position: number } };
 
+export interface InspectInput {
+  expression: string;
+  filter_expression?: string;
+  precise?: boolean;
+  default_slop?: number;
+}
+export interface CompiledInspection {
+  query_string: string;
+  terms: string[];
+  clauses: Clause[];
+}
+export interface InspectionArtifact {
+  schema_version: 1;
+  expression: string;
+  filter_expression: string | null;
+  options: { precise: boolean; default_slop: number };
+  query: CompiledInspection;
+  filter: CompiledInspection | null;
+  query_string: string;
+}
+export type InspectionResult =
+  | { valid: true; inspection: InspectionArtifact }
+  | { valid: false; error: { source: "expression" | "filter"; message: string; position: number } };
+
+export interface AnalysisInput {
+  expression: string;
+  mode: "normal" | "search";
+  precise: boolean;
+}
+export interface AnalysisResult {
+  engine: string;
+  engine_version: string;
+  mode: "normal" | "search";
+  dictionary: {id:string;sha256:string};
+  offset_unit: "unicode_scalar";
+  leaves: {clause:number;text:string;negated:boolean;tokens:{text:string;start:number;end:number}[]}[];
+}
+
 export interface DiffSegment {
   op: "equal" | "insert" | "delete";
   text: string;

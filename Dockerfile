@@ -16,6 +16,7 @@ WORKDIR /workspace
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY src/api ./src/api
+COPY data/segmentation ./data/segmentation
 RUN cargo build -p keyword-vault --release --locked --jobs 2
 
 # 3. Internal, nonroot API runtime

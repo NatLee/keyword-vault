@@ -24,6 +24,7 @@ argon2 = "0.5"
 axum = "0.8"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 csv = "1"
+jieba-rs = { version = "=0.11.0", default-features = false }
 # Shared workspace compiler; no duplicate parser source.
 es-keyword-query = { path = "../../crates/es-keyword-query" }
 # OsRng：密碼的 salt 和 session token 用作業系統的亂數

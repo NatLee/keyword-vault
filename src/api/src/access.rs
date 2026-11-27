@@ -224,6 +224,13 @@ impl Host for VaultHost {
                 json!(["expression"]),
             ),
             operation(
+                "analyze_expression",
+                "Preview Traditional Chinese leaf tokens with a versioned local dictionary; not Elasticsearch analysis",
+                "expressions:read",
+                json!({"expression":{"type":"string","maxLength":10000},"mode":{"type":"string","enum":["normal","search"]},"precise":{"type":"boolean"}}),
+                json!(["expression"]),
+            ),
+            operation(
                 "compare_expressions",
                 "Compare expressions with the existing character diff",
                 "expressions:read",
@@ -282,6 +289,7 @@ impl Host for VaultHost {
                     args.clone(),
                 ),
                 "inspect_workbench" => (Method::POST, "/tools/inspect".into(), args.clone()),
+                "analyze_expression" => (Method::POST, "/tools/analyze".into(), args.clone()),
                 "inspect_expression" => (Method::POST, "/tools/check".into(), args.clone()),
                 "compare_expressions" => (Method::POST, "/tools/diff".into(), args.clone()),
                 _ => {

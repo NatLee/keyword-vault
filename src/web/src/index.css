@@ -2203,3 +2203,20 @@ b, strong, h1, h2, h3, h4, h5, h6 { font-weight: 600; }
 .first-login-note { margin-bottom: 24px; padding: 16px; border: 1px solid currentColor; border-radius: 4px; }
 .first-login-note .eyebrow { margin-bottom: 8px; font-size: 10px; }
 .first-login-note p:last-child { font-size: 12px; line-height: 1.8; }
+
+/* Explicit compiler preview controls share the annotation desk surfaces. */
+.inspection-controls { padding: 1.2rem; border: 1px solid var(--line, #a9997f); border-radius: .75rem; background: var(--panel, transparent); }
+.inspection-controls > label { display: grid; gap: .5rem; font-weight: 600; margin-top: .75rem; }
+.inspection-controls-row { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
+.inspection-controls-row > label { display: flex; gap: .5rem; align-items: center; }
+.inspection-controls-row input[type=number] { width: 10rem; }
+.inspection-controls .hint { margin-top: .65rem; }
+.inspection-filter-title { margin: 1rem 0 .5rem; font-weight: 700; }
+@media(max-width:600px) { .inspection-controls-row { align-items: stretch; flex-direction: column; } .inspection-controls-row > label { justify-content: space-between; } }
+.chinese-analysis h2 { font-weight: 700; }
+.analysis-leaf { border-top: 1px solid var(--line, #a9997f); margin-top: 1rem; padding-top: .75rem; }
+.analysis-leaf h3 { overflow-wrap: anywhere; font-size: .9rem; margin-bottom: .5rem; }
+.analysis-tokens { display: flex; flex-wrap: wrap; gap: .5rem; }
+.analysis-token { display: grid; grid-template-columns: 1fr auto; gap: .25rem .5rem; padding: .5rem; border: 1px solid var(--line, #a9997f); border-radius: .4rem; }
+.analysis-token > small { opacity: .7; font-variant-numeric: tabular-nums; }
+.analysis-token > button { grid-column: 1 / -1; }
