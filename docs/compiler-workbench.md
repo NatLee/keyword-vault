@@ -1,5 +1,30 @@
 # 編譯工作台與中文斷詞
 
+## 實際操作圖解
+
+以下是隔離執行個體的實際操作畫面：全新暫存 SQLite、測試管理員，以及自訂詞典 `光儲整合 1000000 nz`。沒有載入內建 demo 語法庫，也沒有使用正式帳號或客戶資料。畫面由 [操作與擷取腳本](verify-consolidation.py) 產生；JSON 下載、私人儲存及篩選套用的核對結果見 [整合驗證](consolidation-verification.md#frontend-and-actual-browser)。
+
+### 1. 輸入來源與篩選，核對編譯結果
+
+登入後開啟「語法解剖」，在「草稿語法」輸入 `(珍珠奶茶|光儲整合)&(台灣 高鐵 ~)!廣告`。在「篩選語法（選填）」輸入 `臺灣|台灣`，保持「精確片語模式」勾選，將「預設片語 slop」設為 `8`。對照下圖上半部的選項、最終 `query_string` 與兩組結構圖；按「匯出檢視 JSON」可下載來源、篩選、選項及編譯結果。
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/consolidation-workbench-desktop-dark.png">
+  <img src="images/consolidation-workbench-desktop-light.png" alt="實際工作台：來源與篩選分開輸入、slop 8、JSON 匯出、結構圖與下方中文斷詞結果" width="100%">
+</picture>
+
+### 2. 預覽中文字詞，再決定如何使用
+
+對照上圖下半部「中文斷詞預覽」，選擇「一般斷詞」後按「預覽中文斷詞」。自訂詞「光儲整合」保持一個 token，旁邊列出解析後葉節點的字元位置；「廣告」保留直接排除標記。切換搜尋斷詞可比較較細的詞組，複製 token 後由你決定放進哪一段語法。取消「精確片語模式」會停用斷詞預覽。斷詞不會改寫上方草稿，也不代表 ES analyzer 的結果。
+
+### 3. 明確選擇保存來源或套用篩選
+
+在頁面底部填入「新語法名稱」，按「另存來源語法」建立私人語法。這個動作只保存草稿來源；若要連篩選一起保存，先按「套用篩選至草稿」，確認來源變成 `(臺灣|台灣)&(原來源)` 且篩選欄清空，再儲存。raw／slop 仍是預覽選項。
+
+下面的手機實拍顯示相同的來源、篩選、斷詞與儲存控制。擷取腳本先驗證私人紀錄和匯出檔案，再還原預覽內容拍圖；圖中不是另存成功通知。
+
+<img src="images/consolidation-workbench-mobile-dark.png" alt="手機實際工作台：預覽選項、中文 token 與底部另存來源語法控制" width="390">
+
 ## 函式庫、CLI 與工作台
 
 單一 workspace 的 `crates/es-keyword-query` 保留原本套件名稱、0.1.0 API、Rust 1.74 MSRV 和 `unicode-normalization` 輕量 runtime dependency；jieba、HTTP、資料庫與帳號套件只在 host。核心可獨立複製／使用 path dependency。CLI 與固定 atlas 在同個 repo 維護：
