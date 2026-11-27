@@ -17,7 +17,7 @@ export function Providers() {
       })
       .catch(() => {
         if (active)
-          setError("第三方登入選項暫時無法載入。仍可使用原帳號登入。");
+          setError("第三方登入選項暫時無法載入。仍可使用其他已設定的方式登入。");
       });
     return () => {
       active = false;
@@ -49,7 +49,7 @@ export function Providers() {
         </div>
       ))}
       {error && <p role="status">{error}</p>}
-      <small>未綁定時，先使用原帳號登入，再到「連線與存取」綁定。</small>
+      <small>未綁定時，先用既有登入方式進入，再到「連線與存取」綁定。</small>
     </div>
   );
 }

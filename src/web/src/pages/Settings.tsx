@@ -1,3 +1,5 @@
+import { AccountRegistrationStatus } from "../registration/AccountRegistrationStatus";
+import { RegistrationAdmin } from "../registration/RegistrationAdmin";
 import { KeyRound, Pencil, Plus, Trash2, UserPlus, Users } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { api } from "../api";
@@ -57,7 +59,7 @@ function Profile() {
           <label className="label" htmlFor="me-name">
             顯示名稱
           </label>
-          <input id="me-name" className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
+          <input id="me-name" className="input" value={name} maxLength={100} onChange={(e) => setName(e.target.value)} />
           <p className="hint">其他人在關鍵字和留言上看到的名字。</p>
         </div>
         {error && <ErrorBanner message={error} />}
@@ -245,7 +247,7 @@ function AccountDialog({
           <input
             id="acct-name"
             className="input"
-            maxLength={40}
+            maxLength={100}
             placeholder={account ? "" : "不填就用帳號"}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
@@ -334,6 +336,7 @@ function Accounts({ accounts, error, reload }: { accounts?: Account[]; error: st
                       <span className="font-semibold">{a.display_name}</span>
                       <span className="ml-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">{a.username}</span>
                       {self && <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400">（你）</span>}
+                      <AccountRegistrationStatus status={a.account_status} />
                       {a.disabled && (
                         <span className="ml-2">
                           <Badge tone="red">已停用</Badge>
@@ -345,7 +348,7 @@ function Accounts({ accounts, error, reload }: { accounts?: Account[]; error: st
                         className="input w-auto py-1 text-xs"
                         aria-label={`${a.username} 的角色`}
                         value={a.role}
-                        disabled={self}
+                        disabled={self || (a.account_status !== undefined && a.account_status !== "active")}
                         onChange={(e) => void change(a, { role: e.target.value as Role })}
                       >
                         <option value="member">{ROLE_LABEL.member}</option>
@@ -358,7 +361,7 @@ function Accounts({ accounts, error, reload }: { accounts?: Account[]; error: st
                       <button className="btn btn-ghost px-2 py-1 text-xs" onClick={() => setDialog({ account: a })}>
                         <Pencil className="size-4" /> 編輯
                       </button>
-                      {!self && (
+                      {!self && (!a.account_status || a.account_status === "active") && (
                         <button
                           className="btn btn-ghost px-2 py-1 text-xs"
                           onClick={() => {
@@ -464,7 +467,7 @@ function GroupDialog({
           <legend className="label">成員（{members.size}）</legend>
           <div className="max-h-56 overflow-y-auto rounded border border-zinc-200 dark:border-zinc-800">
             {accounts
-              .filter((a) => !a.disabled || members.has(a.id))
+              .filter((a) => ((!a.disabled && (!a.account_status || a.account_status === "active")) || members.has(a.id)))
               .map((a) => (
                 <label
                   key={a.id}
@@ -580,6 +583,7 @@ export function Settings() {
       <Profile />
       <Password />
       <Groups accounts={accounts.data} />
+      {admin && <RegistrationAdmin onReviewed={() => void accounts.reload()} />}
       {admin && <Accounts accounts={accounts.data} error={accounts.error} reload={accounts.reload} />}
     </PageBody>
   );
