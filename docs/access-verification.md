@@ -1,6 +1,6 @@
 # Access integration verification
 
-The host uses the identical frozen access-kit source SHA `d8574937a035c08671c17b586512eb9bf327a86621f5bcd2e8b7dc8a97e12f12`, authoring commit `1c28839becdcd00d28a718dfb40c174632011651`, schema SHA `234cd59820de024f7c472a9d8d5f3cb7f270ebe6a048c2b482910f22bf918d76`. `python crates/access-kit/scripts/snapshot.py --check` verifies the vendored bytes; host migration0002 is the identical core schema.
+The host uses the identical frozen access-kit source SHA `950710417855acd38c245c50c1facb6e456b45df9c6be2c6fb804f1f7a47082a`, authoring commit `5f35e0a188996f66fefe1084666629af0ffb8578`, schema SHA `5a6dfc0ee83c70fce2cb884cbd1541f5ab8e49487cea76ae009a86f10fc26157`. `python crates/access-kit/scripts/snapshot.py --check` verifies the vendored bytes; host migrations0002+0003 concatenate to the identical schema2 SQL.
 
 ## Automated evidence
 
@@ -36,3 +36,9 @@ Root reviewer independently passed Docker image builds and runtime smoke: native
 ## Ledger response-race regression
 
 `python docs/verify-access-ledger.py` runs focused browser regressions against an isolated local admin demo. Configure `ACCESS_LEDGER_URL` and `ACCESS_LEDGER_PASSWORD_FILE` when using a different instance. It intercepts only audit GET responses, leaving the real frontend and password session in place. Requests are deliberately delayed to verify that owner A/API cannot overwrite owner B/MCP, old pagination cannot append or overwrite a new cursor, unapplied draft inputs do not alter pagination, rapid duplicate clicks issue one request, and overlapping page items render once. Both apps pass all four cases. Before the fixes, ES failed delayed reload ordering; Vault failed stale pagination and issued two duplicate pagination requests. No visual layout changed, so the access screenshot gallery remains current.
+
+公開 OAuth 用戶端註冊預設關閉；需要動態註冊時，部署設定 `ACCESS_DYNAMIC_CLIENT_REGISTRATION=true`。管理員預先註冊不受公開名額影響。公開註冊須在24小時內取得使用者授權；未授權且無進行中流程者會回收，待授權名額最多256筆。新核心以附加migration0003升級schema2，保留既有0002的位元組與帳號資料。共用核心已通過獨立複查、27個Rust測試和5個snapshot測試；限流、併發稽核及MCP回應失敗計次的修正另有回歸測試。
+
+## Final reviewed container acceptance
+
+On 2026-11-27, rebuilt the reviewed schema2 snapshot and upgraded the previous schema1 container using the same SQLite volume. Existing accounts, sessions and two historical successful calls survived the additive migration. The final image passed discovery with public registration disabled, rejected public registration with `registration_disabled`, one authenticated REST operation plus one official Python MCP2.3 SDK operation, exactly two additional successes, revoked-key401 and restart persistence. Host tests, all-target clippy, rustfmt and snapshot validation also pass at this revision. Independent host review accepted the domain adapters and ledger ordering fixes; shared-core review accepted all recorded fixes. Local evidence: `/tmp/tools-access-upgrade-smoke.log` and `/tmp/keyword-vault-reviewed-host-tests.log`.
