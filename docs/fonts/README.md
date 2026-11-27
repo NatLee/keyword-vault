@@ -1,0 +1,1 @@
+Noto Serif TC Variable, Latin subset, bundled from the existing `@fontsource-variable/noto-serif-tc` dependency. SIL Open Font License 1.1: [license](OFL-Noto-Serif-TC.txt). Upstream: https://github.com/notofonts/noto-cjk . Used by the editable repository cover; no CDN request.

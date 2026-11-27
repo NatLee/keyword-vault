@@ -1,4 +1,4 @@
-![Keyword Vault：關鍵字典藏室的抽屜目錄與主題分冊](docs/images/screenshot-overview-light.png)
+![Keyword Vault — Good queries. Worth keeping.](docs/images/cover.png)
 
 # Keyword Vault
 
@@ -16,12 +16,30 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 
 一個 Docker 映像檔就是全部：Rust 後端、React 前端、SQLite 資料庫，不需要另外架搜尋引擎。
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-keywords-dark.png">
-    <img src="docs/images/screenshot-keywords-light.png" alt="關鍵字清單：搜尋、依範圍和標籤篩選，語法有上色" width="100%">
-  </picture>
-</p>
+## 從主題分冊，到一份新的私人草稿
+
+以下三張圖來自內建的虛構 demo，在隔離執行個體操作同一筆 **#1「珍珠奶茶」**。
+封面是獨立的品牌插畫；流程圖則是實際頁面擷取。
+
+**1. 依主題找語法。** 開啟「語法庫」，點左側「手搖飲」主題分冊。
+畫面收斂為這個主題的三筆可讀語法；找到 #1「珍珠奶茶」，按「拆解與試寫」。
+
+![步驟一：手搖飲分冊中找到 #1 珍珠奶茶與拆解入口](docs/images/workflow-01.png)
+
+**2. 在推敲桌試寫。** 載入的原稿是 `珍珠奶茶|波霸奶茶|黑糖珍珠|(珍珠 鮮奶 ~)`。
+將草稿改為 `(珍珠奶茶|波霸奶茶)&評價!(業配|廣告)`，再選取「廣告」節點。
+右側標明它位於排除群組內，上方同步顯示 Rust API 實際產生的 `query_string`。
+圖中捲到推敲工作區，頂部仍可看到「從 #1 載入」。
+
+![步驟二：從 #1 載入並改寫草稿，選取廣告的排除群組節點](docs/images/workflow-02.png)
+
+**3. 把新版本留下。** 名稱填入「珍珠奶茶 · 去除廣告的口碑草稿」，按「另存私人語法」。
+頁面底部出現「私人語法已儲存」及「開啟新語法」連結；新語法保留主題標籤、範圍為私人，
+#1 原稿不變。下圖捲到儲存結果；捕圖腳本會核對 API 中的副本，隨後刪除這筆臨時資料。
+
+![步驟三：同一份試寫另存私人語法，顯示成功及開啟連結](docs/images/workflow-03.png)
+
+[重現步驟與驗證結果](docs/workflow-verification.md) · [可編輯的封面來源](docs/images/src/cover.html)
 
 ## 工作區設計
 
@@ -37,13 +55,13 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 
 圖與編譯結果都來自 Rust API：前端不另寫解析器，也不推測 AND／OR 優先順序。等待新結果或語法有錯時，舊圖會清除。草稿可另存為私人語法；組合語法會以當時的展開內容另存一般語法。原始查詢不會因試寫而變更。
 
-![語法解剖：載入、編輯與檢視群組](docs/images/screenshot-inspector-light.png)
-
 - 點選節點，查看所屬群組、直接排除、群組內排除與片語 slop。
 - 詳情頁也有同一份結構圖；既有編輯器可展開結構預覽後儲存修改。
 - 大型語法預覽前 80 個節點（編輯器 24 個）；完整語法與編譯結果仍可閱讀與複製。
 
-<details><summary>深色與手機解剖工作台</summary>
+<details><summary>語法解剖圖庫：淺色、深色與手機</summary>
+
+![語法解剖：載入、編輯與檢視群組](docs/images/screenshot-inspector-light.png)
 
 ![深色語法解剖](docs/images/screenshot-inspector-dark.png)
 <img src="docs/images/screenshot-inspector-mobile.png" alt="手機語法解剖" width="390">
@@ -62,6 +80,17 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 - 淺色和深色模式。
 
 ## 畫面
+
+<details><summary>展開其他功能與深淺模式圖庫</summary>
+
+### 語法庫
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-keywords-dark.png">
+    <img src="docs/images/screenshot-keywords-light.png" alt="關鍵字清單：搜尋、依範圍和標籤篩選，語法有上色" width="100%">
+  </picture>
+</p>
 
 ### 語法工作台
 
@@ -116,6 +145,8 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 <p align="center">
   <img src="docs/images/screenshot-settings-light.png" alt="設定：個人資料、密碼、群組、帳號管理" width="100%">
 </p>
+
+</details>
 
 ## 快速開始
 
@@ -213,21 +244,26 @@ API 文件在 [docs/api.md](docs/api.md)。
 
 [典藏室設計與驗證](docs/query-cabinet.md) 記錄此版的分類導覽、字型來源與畫面驗證。
 
-所有截圖都來自內建的虛構 demo 資料。可在隔離的 demo 執行個體上執行：
+所有操作截圖都來自內建的虛構 demo 資料；README 封面是獨立 HTML 插畫。可在隔離的 demo 執行個體上執行：
 
 ```bash
 python -m pip install playwright
 python -m playwright install chromium
 KV_QA_URL=http://localhost:5173 KV_QA_PASSWORD='<demo password>' python docs/capture-ui.py
 KV_QA_URL=http://localhost:5173 KV_QA_PASSWORD='<demo password>' python docs/capture-insights.py
+KV_QA_URL=http://localhost:5173 KV_QA_PASSWORD='<demo password>' python docs/capture-workflow.py
 ```
 
 腳本會驗證登入、搜尋、收藏、新增、語法錯誤、手機導覽及登出，並更新畫面。
-兩個腳本會新增測試語法後刪除，請只對 demo 資料庫執行。
+三個腳本會新增測試語法後刪除，請只對 demo 資料庫執行。
 [語法解剖設計與驗證](docs/visual-insights.md) 包含結構 API 與新版互動流程。
 [設計與稽核記錄](docs/design-and-audit.md) 包含測試結果與限制。
 
-![手機版語法庫](docs/images/screenshot-mobile-light.png)
+<details><summary>手機語法庫</summary>
+
+<img src="docs/images/screenshot-mobile-light.png" alt="手機版語法庫" width="390">
+
+</details>
 
 ## 授權
 
