@@ -48,6 +48,9 @@ export function Access() {
     if (secret) closeButton.current?.focus();
   }, [secret]);
   const version = useRef(0);
+  const appliedQuery = useRef("");
+  const pagination = useRef<symbol | null>(null);
+  const [loadingPage, setLoadingPage] = useState(false);
   const [ownerDraft, setOwnerDraft] = useState("");
   const query = () =>
     new URLSearchParams({
@@ -58,20 +61,25 @@ export function Access() {
     }).toString();
   async function reload() {
     const request = ++version.current;
+    const requestedQuery = query();
+    pagination.current = null;
+    setLoadingPage(false);
+    setCursor(null);
     setError("");
     try {
       const [o, p, u, e] = await Promise.all([
         accessRequest<Overview>("/overview"),
         accessRequest<{ items: Provider[] }>("/providers"),
-        accessRequest<Usage>(`/usage?${query()}`),
+        accessRequest<Usage>(`/usage?${requestedQuery}`),
         accessRequest<{ items: AccessEvent[]; next_cursor: string | null }>(
-          `/events?${query()}`,
+          `/events?${requestedQuery}`,
         ),
       ]);
       if (request !== version.current) return;
       setData(o);
       setProviders(p.items);
       setUsage(u);
+      appliedQuery.current = requestedQuery;
       setEvents(e.items);
       setCursor(e.next_cursor);
       if (user.role === "admin") {
@@ -79,7 +87,7 @@ export function Access() {
         if (request === version.current) setClients(registered.items);
       }
     } catch (e) {
-      setError((e as Error).message);
+      if (request === version.current) setError((e as Error).message);
     }
   }
   useEffect(() => {
@@ -91,6 +99,42 @@ export function Access() {
     },
     [],
   );
+  async function loadEarlier() {
+    if (!cursor || pagination.current) return;
+    const request = version.current;
+    const requestedQuery = appliedQuery.current;
+    const requestedCursor = cursor;
+    const page = Symbol("pagination");
+    pagination.current = page;
+    setLoadingPage(true);
+    try {
+      const next = await accessRequest<{
+        items: AccessEvent[];
+        next_cursor: string | null;
+      }>(
+        `/events?${requestedQuery}&cursor=${encodeURIComponent(requestedCursor)}`,
+      );
+      if (request !== version.current || pagination.current !== page) return;
+      setEvents((current) => {
+        const seen = new Set(current.map((event) => event.id));
+        const additions = next.items.filter((event) => {
+          if (seen.has(event.id)) return false;
+          seen.add(event.id);
+          return true;
+        });
+        return [...current, ...additions];
+      });
+      setCursor(next.next_cursor);
+    } catch (e) {
+      if (request === version.current && pagination.current === page)
+        setError((e as Error).message);
+    } finally {
+      if (pagination.current === page) {
+        pagination.current = null;
+        setLoadingPage(false);
+      }
+    }
+  }
   async function action(work: () => Promise<void>) {
     setBusy(true);
     setError("");
@@ -541,16 +585,8 @@ export function Access() {
         {cursor && (
           <button
             className="btn btn-secondary"
-            onClick={() =>
-              void action(async () => {
-                const next = await accessRequest<{
-                  items: AccessEvent[];
-                  next_cursor: string | null;
-                }>(`/events?${query()}&cursor=${encodeURIComponent(cursor)}`);
-                setEvents((current) => [...current, ...next.items]);
-                setCursor(next.next_cursor);
-              })
-            }
+            disabled={loadingPage}
+            onClick={() => void loadEarlier()}
           >
             載入較早紀錄
           </button>
