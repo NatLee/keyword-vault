@@ -184,7 +184,7 @@ export function Inspector() {
               </p>
             ) : (
               <>
-                <label className="sr-only" htmlFor="inspection-expression">
+                <label className="visually-hidden" htmlFor="inspection-expression">
                   草稿語法
                 </label>
                 <textarea
@@ -210,7 +210,7 @@ export function Inspector() {
                     }}
                     disabled={!dirty || busy}
                   >
-                    <RotateCcw className="size-3" /> 重設草稿
+                    <RotateCcw className="size-4" /> 重設草稿
                   </button>
                 </div>
               </>
@@ -225,7 +225,7 @@ export function Inspector() {
                 className="inspection-source-link"
                 to={`/keywords/${source.id}`}
               >
-                檢視原始語法與修改紀錄 <ArrowRight className="size-3" />
+                檢視原始語法與修改紀錄 <ArrowRight className="size-4" />
               </Link>
             )}
           </div>

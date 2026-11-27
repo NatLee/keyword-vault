@@ -14,7 +14,7 @@ export function VisibilityBadge({ visibility }: { visibility: Visibility }) {
   const { tone, icon: Icon } = VISIBILITY_STYLE[visibility];
   return (
     <Badge tone={tone} title={VISIBILITY_HINT[visibility]}>
-      <Icon className="size-3" />
+      <Icon className="size-4" />
       {VISIBILITY_LABEL[visibility]}
     </Badge>
   );
@@ -23,7 +23,7 @@ export function VisibilityBadge({ visibility }: { visibility: Visibility }) {
 export function CombinationBadge() {
   return (
     <Badge tone="brand" title="用其他關鍵字組起來的">
-      <Combine className="size-3" />
+      <Combine className="size-4" />
       組合
     </Badge>
   );
@@ -42,7 +42,7 @@ export function TagLink({ tag }: { tag: string }) {
   return (
     <Link
       to={`/keywords?tag=${encodeURIComponent(tag)}`}
-      className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-600 hover:bg-brand-100 hover:text-brand-800 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-brand-950 dark:hover:text-brand-200"
+      className="rounded bg-zinc-100 px-2 py-1 text-xs text-zinc-600 hover:bg-brand-100 hover:text-brand-800 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-brand-950 dark:hover:text-brand-200"
     >
       #{tag}
     </Link>
@@ -61,13 +61,13 @@ export function FavoriteButton({
   return (
     <button
       type="button"
-      className={`btn ${withLabel ? "btn-secondary" : "btn-ghost px-1.5"}`}
+      className={`btn ${withLabel ? "btn-secondary" : "btn-ghost px-2"}`}
       onClick={onToggle}
       aria-pressed={favorite}
       title={favorite ? "取消收藏" : "收藏"}
     >
       <Star className={`size-4 ${favorite ? "fill-amber-400 text-amber-500" : "text-zinc-400"}`} />
-      {withLabel ? (favorite ? "已收藏" : "收藏") : <span className="sr-only">{favorite ? "取消收藏" : "收藏"}</span>}
+      {withLabel ? (favorite ? "已收藏" : "收藏") : <span className="visually-hidden">{favorite ? "取消收藏" : "收藏"}</span>}
     </button>
   );
 }

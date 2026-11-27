@@ -104,7 +104,7 @@ function KeywordRow({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to={`/keywords/${keyword.id}`}
-            className="record-title font-medium hover:text-brand-700 dark:hover:text-brand-300"
+            className="record-title font-semibold hover:text-brand-700 dark:hover:text-brand-300"
           >
             {keyword.theme}
           </Link>
@@ -120,13 +120,13 @@ function KeywordRow({
         >
           <Expression value={keyword.expression} clamp />
         </Link>
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 flex flex-wrap items-center gap-x-3 text-xs text-zinc-500 dark:text-zinc-400">
           <span className="font-mono">#{keyword.id}</span>
           <span>{keyword.owner.display_name}</span>
           <span>{timeAgo(keyword.updated_at)}更新</span>
           {keyword.comment_count > 0 && (
             <span className="inline-flex items-center gap-1">
-              <MessageSquare className="size-3" /> {keyword.comment_count}
+              <MessageSquare className="size-4" /> {keyword.comment_count}
             </span>
           )}
         </p>
@@ -231,7 +231,7 @@ export function Keywords() {
       <div className="library-filters card mb-5 flex flex-col gap-4 p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2">
           <label className="relative min-w-52 flex-1">
-            <span className="sr-only">搜尋</span>
+            <span className="visually-hidden">搜尋</span>
             <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-zinc-400" />
             <input
               className="input pl-9"
@@ -263,7 +263,7 @@ export function Keywords() {
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <div
-            className="flex rounded-lg bg-zinc-100 p-0.5 text-sm dark:bg-zinc-800"
+            className="flex rounded bg-zinc-100 p-1 text-sm dark:bg-zinc-800"
             role="tablist"
             aria-label="範圍"
           >
@@ -273,9 +273,9 @@ export function Keywords() {
                 role="tab"
                 aria-selected={filter.scope === s.value}
                 onClick={() => update({ scope: s.value })}
-                className={`rounded-md px-3 py-1 transition-colors ${
+                className={`rounded px-3 py-1 transition-colors ${
                   filter.scope === s.value
-                    ? "bg-white font-medium text-brand-700 shadow-sm dark:bg-zinc-950 dark:text-brand-300"
+                    ? "bg-white font-semibold text-brand-700 shadow-none dark:bg-zinc-950 dark:text-brand-300"
                     : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100"
                 }`}
               >
@@ -288,13 +288,13 @@ export function Keywords() {
               aria-pressed={view === "cards"}
               onClick={() => setView("cards")}
             >
-              <LayoutGrid className="size-3.5" /> 索引卡
+              <LayoutGrid className="size-4" /> 索引卡
             </button>
             <button
               aria-pressed={view === "index"}
               onClick={() => setView("index")}
             >
-              <List className="size-3.5" /> 清單
+              <List className="size-4" /> 清單
             </button>
           </div>
         </div>
@@ -386,12 +386,12 @@ export function Keywords() {
                   ))}
                 </ul>
               )}
-              <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-2.5 text-sm text-zinc-500 sm:px-5 dark:border-zinc-800 dark:text-zinc-400">
+              <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 text-sm text-zinc-500 sm:px-5 dark:border-zinc-800 dark:text-zinc-400">
                 <span>共 {data.total.toLocaleString()} 個</span>
                 {pages > 1 && (
                   <span className="flex items-center gap-1">
                     <button
-                      className="btn btn-ghost px-1.5"
+                      className="btn btn-ghost px-2"
                       disabled={filter.page <= 1}
                       onClick={() => update({ page: filter.page - 1 })}
                       aria-label="上一頁"
@@ -402,7 +402,7 @@ export function Keywords() {
                       {filter.page} / {pages}
                     </span>
                     <button
-                      className="btn btn-ghost px-1.5"
+                      className="btn btn-ghost px-2"
                       disabled={filter.page >= pages}
                       onClick={() => update({ page: filter.page + 1 })}
                       aria-label="下一頁"

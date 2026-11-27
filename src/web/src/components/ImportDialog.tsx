@@ -79,13 +79,13 @@ export function ImportDialog({ open, onClose, onImported }: { open: boolean; onC
             id="import-file"
             type="file"
             accept=".csv,text/csv"
-            className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-2.5 file:py-1 file:text-sm file:font-medium file:text-brand-700 dark:file:bg-brand-950 dark:file:text-brand-200"
+            className="input file:mr-3 file:rounded file:border-0 file:bg-brand-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-brand-700 dark:file:bg-brand-950 dark:file:text-brand-200"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </div>
         {error && <ErrorBanner message={error} />}
         {problems.length > 0 && (
-          <div className="max-h-56 overflow-y-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <div className="max-h-56 overflow-y-auto rounded border border-zinc-200 dark:border-zinc-800">
             <table className="w-full">
               <thead className="sticky top-0 bg-zinc-50 dark:bg-zinc-900">
                 <tr>

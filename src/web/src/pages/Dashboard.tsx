@@ -33,7 +33,7 @@ function ReadingCard({ initial }: { initial: Keyword | null }) {
           disabled={busy}
           onClick={() => void shuffle().catch(() => {})}
         >
-          <Shuffle className="size-3" /> 換一個
+          <Shuffle className="size-4" /> 換一個
         </button>
       </div>
       {keyword ? (
@@ -214,7 +214,7 @@ export function Dashboard() {
                     <code>{k.is_combination ? k.logic : k.expression}</code>
                   </div>
                   <span className="accession-meta">
-                    {k.is_combination && <Combine className="size-3" />}
+                    {k.is_combination && <Combine className="size-4" />}
                     {k.owner.display_name}
                     <small>{timeAgo(k.updated_at)}更新</small>
                   </span>
@@ -240,7 +240,7 @@ export function Dashboard() {
           <h2>好語法，經得起拆開來看。</h2>
           <p>載入館藏 → 檢視結構 → 修改草稿 → 另存私人副本</p>
         </div>
-        <ArrowUpRight className="size-7" />
+        <ArrowUpRight className="size-6" />
       </Link>
       <KeywordEditor
         open={creating}

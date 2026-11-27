@@ -16,6 +16,10 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 
 一個 Docker 映像檔就是全部：Rust 後端、React 前端、SQLite 資料庫，不需要另外架搜尋引擎。
 
+主題索引、記錄架、語法拆解與私人版本儲存分成不同工作區。
+節點選取會連動路徑與右側詳情，過渡為 160–180ms；減少動態偏好直接顯示結果。
+[觀看實際節點操作錄影（WebM）](docs/images/feature-motion.webm) · [樣式與無障礙驗證](docs/themed-motion-verification.md)。
+
 ## 從主題分冊，到一份新的私人草稿
 
 以下三張圖來自內建的虛構 demo，在隔離執行個體操作同一筆 **#1「珍珠奶茶」**。
