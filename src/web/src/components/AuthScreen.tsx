@@ -10,11 +10,13 @@ import { errorText } from "../lib/hooks";
 
 /** Shared themed account surface; lifecycle is owned by the route pages. */
 export function AuthScreen({ setupRequired, children }: { setupRequired: boolean; children?: ReactNode }) {
-  const { login, setup, meta } = useApp();
+  const { login, setup, meta, auth } = useApp();
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
+  const [setupToken, setSetupToken] = useState("");
+  const tokenRequired = setupRequired && Boolean(auth?.setup_token_required);
   const submitting = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,12 +38,14 @@ export function AuthScreen({ setupRequired, children }: { setupRequired: boolean
           username: username.trim(),
           display_name: displayName.trim(),
           password,
+          ...(tokenRequired ? {setup_token:setupToken} : {}),
         });
       } else {
         await login(username.trim(), password);
       }
       setPassword("");
       setConfirmation("");
+      setSetupToken("");
     } catch (e) {
       setError(errorText(e));
       if (!setupRequired) setPassword("");
@@ -155,6 +159,12 @@ export function AuthScreen({ setupRequired, children }: { setupRequired: boolean
             <label className="label mt-3" htmlFor="login-confirmation">確認密碼</label>
             <input id="login-confirmation" className="input" type="password" autoComplete="new-password" value={confirmation} onChange={e=>setConfirmation(e.target.value)} />
           </>}
+          {tokenRequired && <>
+            <label className="label mt-3" htmlFor="deployment-code">部署設定代碼</label>
+            <input id="deployment-code" className="input" type="password" autoComplete="off" value={setupToken} onChange={e=>setSetupToken(e.target.value)} />
+            <p className="hint">向部署管理員取得設定代碼。代碼只用於建立第一位管理員。</p>
+            {!auth?.setup_token_configured && <p role="alert" className="hint">部署管理員尚未設定代碼，請聯絡部署管理員完成設定。</p>}
+          </>}
           {error && (
             <div className="mt-4">
               <ErrorBanner message={error} />
@@ -163,7 +173,7 @@ export function AuthScreen({ setupRequired, children }: { setupRequired: boolean
           <button
             className="btn btn-primary mt-5 w-full py-2"
             type="submit"
-            disabled={busy || !username.trim() || !password || (setupRequired && !confirmation)}
+            disabled={busy || !username.trim() || !password || (setupRequired && !confirmation) || (tokenRequired && (!setupToken.trim() || !auth?.setup_token_configured))}
           >
             {busy ? (
               <Spinner />

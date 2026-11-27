@@ -1,6 +1,7 @@
 import type {
   Account,
   AuthState,
+  SetupInput,
   CheckResult,
   InspectInput,
   InspectionResult,
@@ -87,7 +88,7 @@ export const api = {
 
   authState: () => get<AuthState>("/auth/state"),
   // 顯示名稱沒填就不送，後端會用帳號當名字
-  setup: (input: { username: string; display_name: string; password: string }) =>
+  setup: (input: SetupInput) =>
     post<User>("/auth/setup", { ...input, display_name: input.display_name || undefined }),
   login: (username: string, password: string) => post<User>("/auth/login", { username, password }),
   logout: () => post<void>("/auth/logout"),

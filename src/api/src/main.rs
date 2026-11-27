@@ -1,10 +1,12 @@
 use anyhow::{bail, Result};
 use keyword_vault::{app, auth, build_state, demo, Config};
+use std::io::Read;
 use tokio::net::TcpListener;
 use tracing_subscriber::{prelude::*, EnvFilter};
 
 const USAGE: &str = "用法：
   keyword-vault                          啟動伺服器
+  keyword-vault bootstrap <帳號>         從 stdin 讀取密碼，建立第一位管理員
   keyword-vault reset-password <帳號>    重設某個帳號的密碼，新密碼會印在畫面上
   keyword-vault demo                     在空的資料庫裡建立範例帳號和關鍵字，密碼會印在畫面上
                                          （要自己指定密碼的話設 KV_DEMO_PASSWORD）
@@ -29,6 +31,7 @@ async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
         None => serve(Config::from_env()?).await,
+        Some("bootstrap") if args.len() == 2 => bootstrap(Config::from_env()?, &args[1]).await,
         Some("reset-password") => match args.get(1) {
             Some(username) => reset_password(Config::from_env()?, username).await,
             None => bail!("{USAGE}"),
@@ -58,10 +61,29 @@ async fn serve(config: Config) -> Result<()> {
     }
     let listener = TcpListener::bind(&bind).await?;
     tracing::info!("網頁介面：http://{}", listener.local_addr()?);
-    axum::serve(listener, app(state))
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    axum::serve(
+        listener,
+        app(state).into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown_signal())
+    .await?;
     tracing::info!("已停止");
+    Ok(())
+}
+
+async fn bootstrap(config: Config, username: &str) -> Result<()> {
+    let mut password = String::new();
+    std::io::stdin().take(4097).read_to_string(&mut password)?;
+    if password.len() > 4096 {
+        bail!("Password input too long");
+    }
+    let password = password.trim_end_matches(['\r', '\n']).to_owned();
+    let db = keyword_vault::db::connect(&config.database_path).await?;
+    let user = keyword_vault::setup::create_admin(&db, username, None, password)
+        .await
+        .map_err(|error| anyhow::anyhow!("{error:?}"))?;
+    db.close().await;
+    println!("Administrator {} created.", user.username);
     Ok(())
 }
 

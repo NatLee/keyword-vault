@@ -34,6 +34,7 @@ impl TestApp {
             cookie_secure: false,
             default_slop: 20,
             segmentation_dict: None,
+            setup_token: None,
         };
         let state = build_state(config).await.unwrap();
         Self {
@@ -43,7 +44,10 @@ impl TestApp {
         }
     }
 
-    async fn send(&self, req: Request<Body>) -> (StatusCode, axum::http::HeaderMap, Vec<u8>) {
+    async fn send(&self, mut req: Request<Body>) -> (StatusCode, axum::http::HeaderMap, Vec<u8>) {
+        req.extensions_mut().insert(axum::extract::ConnectInfo(
+            "127.0.0.1:1234".parse::<std::net::SocketAddr>().unwrap(),
+        ));
         let resp = self.router.clone().oneshot(req).await.unwrap();
         let status = resp.status();
         let headers = resp.headers().clone();
@@ -161,7 +165,10 @@ async fn first_visitor_creates_the_admin_and_there_is_no_default_account() {
     let t = TestApp::new().await;
     let (status, state) = t.call(None, Method::GET, "/api/auth/state", None).await;
     assert_eq!(status, StatusCode::OK);
-    assert_eq!(state, json!({ "setup_required": true, "user": null }));
+    assert_eq!(
+        state,
+        json!({ "setup_required": true, "setup_token_required": false, "setup_token_configured": false, "user": null })
+    );
 
     // 還沒登入：什麼都讀不到
     let (status, _) = t.call(None, Method::GET, "/api/keywords", None).await;

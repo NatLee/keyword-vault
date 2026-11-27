@@ -52,6 +52,7 @@ async fn fixture() -> (TempDir, AppState, Router) {
         cookie_secure: false,
         default_slop: 20,
         segmentation_dict: None,
+        setup_token: None,
     })
     .await
     .unwrap();
@@ -337,6 +338,7 @@ async fn official_stateless_sdk_uses_current_group_visibility_and_counts_each_ca
         cookie_secure: false,
         default_slop: 20,
         segmentation_dict: None,
+        setup_token: None,
     })
     .await
     .unwrap();
@@ -686,6 +688,7 @@ async fn official_mcp_sdk_exercises_consolidated_compiler_and_analysis_operation
         cookie_secure: false,
         default_slop: 20,
         segmentation_dict: None,
+        setup_token: None,
     })
     .await
     .unwrap();

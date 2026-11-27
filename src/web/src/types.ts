@@ -17,7 +17,16 @@ export interface User {
 export interface AuthState {
   /** 還沒有任何帳號：第一個進來的人要先建立管理員 */
   setup_required: boolean;
+  setup_token_required?: boolean;
+  setup_token_configured?: boolean;
   user: User | null;
+}
+
+export interface SetupInput {
+  username: string;
+  display_name: string;
+  password: string;
+  setup_token?: string;
 }
 
 export interface Account extends User {

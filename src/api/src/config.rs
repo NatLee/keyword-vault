@@ -18,6 +18,7 @@ pub struct Config {
     /// `~` 後面沒寫數字時的距離。
     pub default_slop: u32,
     pub segmentation_dict: Option<PathBuf>,
+    pub setup_token: Option<crate::setup::SetupToken>,
 }
 
 impl Config {
@@ -42,6 +43,7 @@ impl Config {
             cookie_secure,
             default_slop: parse_var("KV_DEFAULT_SLOP", 20)?,
             segmentation_dict: var("KV_SEGMENTATION_DICT").map(PathBuf::from),
+            setup_token: crate::setup::SetupToken::from_env()?,
         })
     }
 }

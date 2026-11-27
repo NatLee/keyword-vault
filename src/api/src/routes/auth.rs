@@ -32,10 +32,17 @@ async fn user_count(state: &AppState) -> AppResult<i64> {
 }
 
 /// 前端一開始問的：要不要先建立管理員、現在是誰登入。
-pub async fn state(State(state): State<AppState>, headers: HeaderMap) -> AppResult<Json<Value>> {
+pub async fn state(
+    State(state): State<AppState>,
+    peer: crate::setup::Peer,
+    headers: HeaderMap,
+) -> AppResult<Json<Value>> {
     let user = auth::optional_user(&state.db, &headers).await?;
+    let required = user_count(&state).await? == 0;
     Ok(Json(json!({
-        "setup_required": user_count(&state).await? == 0,
+        "setup_required": required,
+        "setup_token_required": required && !crate::setup::is_loopback(&peer),
+        "setup_token_configured": required && state.config.setup_token.is_some(),
         "user": user,
     })))
 }
@@ -48,6 +55,7 @@ async fn signed_in(state: &AppState, user: CurrentUser) -> AppResult<Response> {
 
 #[derive(Deserialize)]
 pub struct SetupBody {
+    setup_token: Option<String>,
     username: String,
     display_name: Option<String>,
     password: String,
@@ -56,43 +64,26 @@ pub struct SetupBody {
 /// 第一次使用：建立管理員。已經有帳號之後這個 API 就關掉。
 pub async fn setup(
     State(state): State<AppState>,
+    peer: crate::setup::Peer,
     Json(body): Json<SetupBody>,
 ) -> AppResult<Response> {
     if user_count(&state).await? > 0 {
         return Err(AppError::conflict("已經設定過了，請直接登入"));
     }
-    let username = body.username.trim().to_lowercase();
-    let display_name = body
-        .display_name
-        .filter(|n| !n.trim().is_empty())
-        .unwrap_or_else(|| username.clone());
-    auth::validate_username(&username)?;
-    auth::validate_password(&body.password)?;
-    let display_name = auth::clean_display_name(&display_name)?;
-    let hash = auth::hash_password(body.password).await?;
-    // One SQLite write statement makes the empty-database check atomic. Two
-    // simultaneous first visitors must not both become administrators.
-    let inserted = sqlx::query(
-        "INSERT INTO users (username, display_name, password_hash, role, created_at)
-         SELECT ?, ?, ?, 'admin', ? WHERE NOT EXISTS (SELECT 1 FROM users)",
-    )
-    .bind(&username)
-    .bind(&display_name)
-    .bind(hash)
-    .bind(crate::db::now())
-    .execute(&state.db)
-    .await?;
-    if inserted.rows_affected() == 0 {
-        return Err(AppError::conflict("已經設定過了，請直接登入"));
+    if !crate::setup::is_loopback(&peer)
+        && !state.config.setup_token.as_ref().is_some_and(|expected| {
+            body.setup_token
+                .as_deref()
+                .is_some_and(|candidate| expected.matches(candidate))
+        })
+    {
+        return Err(AppError::forbidden(
+            "首次管理員設定需要本機 loopback 連線，或有效的部署設定代碼",
+        ));
     }
-    let id = inserted.last_insert_rowid();
-    tracing::info!("建立了第一個管理員：{username}");
-    let user = CurrentUser {
-        id,
-        username,
-        display_name: display_name.trim().to_owned(),
-        role: "admin".into(),
-    };
+    let user =
+        crate::setup::create_admin(&state.db, &body.username, body.display_name, body.password)
+            .await?;
     signed_in(&state, user).await
 }
 

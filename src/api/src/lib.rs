@@ -11,6 +11,7 @@ pub mod db;
 pub mod demo;
 pub mod error;
 pub mod routes;
+pub mod setup;
 pub mod state;
 pub mod syntax;
 pub mod workbench;

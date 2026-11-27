@@ -393,6 +393,7 @@ mod tests {
             cookie_secure: false,
             default_slop: 20,
             segmentation_dict: None,
+            setup_token: None,
         }
     }
 
