@@ -1,4 +1,4 @@
-![Keyword Vault：團隊的語法工作台](docs/images/cover.svg)
+![Keyword Vault：關鍵字典藏室的抽屜目錄與主題分冊](docs/images/screenshot-overview-light.png)
 
 # Keyword Vault
 
@@ -25,11 +25,13 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 
 ## 工作區設計
 
-以語法本身為中心：水平工具導覽、帶編號的語法索引、直接可讀的運算式與
-標籤篩選。暖灰紙面、墨綠底色與琥珀運算子搭配自動或手動的深淺色模式；
-手機上工具導覽收進選單，語法會換行而不把畫面撐寬。
+以「關鍵字典藏室」為主題：黃銅標籤抽屜、主題分冊、帶編號的索引卡與修訂登錄簿。首頁四個抽屜分別開啟全部館藏、我的手稿、組合索引與書籤收藏，數量由你有權限讀取的 API 資料計算。
 
-## 語法解剖工作台
+語法庫可在索引卡與精簡清單間切換；左側列出全部主題標籤，篩選仍保留在網址。每張卡都保留分享範圍、組合狀態與作者，並可直接「拆解與試寫」。手機把主題分冊收成可橫向捲動的索引。
+
+暖赭色、象牙紙面與墨色組成完整的深淺模式。Noto Sans TC 與 Noto Serif TC 皆由套件自架，字型不需要外部 CDN。
+
+## 語法推敲桌
 
 從導覽列開啟「語法解剖」，或在任何語法詳情按「拆解與試寫」。左側可搜尋自己有權限讀取的語法，載入後在草稿裡調整，再逐一選取群組、詞彙或排除節點。
 
@@ -66,7 +68,7 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-overview-dark.png">
-    <img src="docs/images/screenshot-overview-light.png" alt="總覽：關鍵字數量、每月新增、今日關鍵字、最近更新" width="100%">
+    <img src="docs/images/screenshot-overview-light.png" alt="典藏室：實際館藏抽屜、主題分冊、最近修訂與隨手翻閱" width="100%">
   </picture>
 </p>
 
@@ -208,6 +210,8 @@ bash docs/smoke-test.sh http://127.0.0.1:8686   # 對一個空的執行個體跑
 API 文件在 [docs/api.md](docs/api.md)。
 
 ## 驗證與畫面重現
+
+[典藏室設計與驗證](docs/query-cabinet.md) 記錄此版的分類導覽、字型來源與畫面驗證。
 
 所有截圖都來自內建的虛構 demo 資料。可在隔離的 demo 執行個體上執行：
 

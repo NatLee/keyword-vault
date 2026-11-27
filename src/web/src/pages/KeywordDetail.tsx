@@ -1,13 +1,32 @@
-import { ArrowLeft, Combine, History, MessageSquare, Pencil, Send, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Combine,
+  History,
+  MessageSquare,
+  Pencil,
+  Send,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { api } from "../api";
 import { CopyButton, DiffView, Expression } from "../components/Expression";
-import { FavoriteButton, KeywordBadges, TagLink } from "../components/KeywordBits";
+import {
+  FavoriteButton,
+  KeywordBadges,
+  TagLink,
+} from "../components/KeywordBits";
 import { KeywordEditor } from "../components/KeywordEditor";
 import { QueryAnatomy } from "../components/QueryAnatomy";
 import { PageBody } from "../components/Layout";
-import { Dialog, ErrorBanner, Loading, PageHeader, Spinner, useToast } from "../components/ui";
+import {
+  Dialog,
+  ErrorBanner,
+  Loading,
+  PageHeader,
+  Spinner,
+  useToast,
+} from "../components/ui";
 import { dateTime, timeAgo } from "../lib/format";
 import { errorText, useAsync } from "../lib/hooks";
 import type { Comment, HistoryEntry, KeywordDetail, Linked } from "../types";
@@ -17,11 +36,16 @@ function LinkedList({ items }: { items: Linked[] }) {
     <ul className="flex flex-col gap-1.5 text-sm">
       {items.map((k) => (
         <li key={k.id} className="flex items-center gap-2">
-          <span className="rounded bg-sky-100 px-1 font-mono text-xs text-sky-800 dark:bg-sky-950 dark:text-sky-300">#{k.id}</span>
+          <span className="rounded bg-sky-100 px-1 font-mono text-xs text-sky-800 dark:bg-sky-950 dark:text-sky-300">
+            #{k.id}
+          </span>
           {k.theme === null ? (
             <span className="text-zinc-400">（你看不到這個關鍵字）</span>
           ) : (
-            <Link to={`/keywords/${k.id}`} className="hover:text-brand-700 hover:underline dark:hover:text-brand-300">
+            <Link
+              to={`/keywords/${k.id}`}
+              className="hover:text-brand-700 hover:underline dark:hover:text-brand-300"
+            >
               {k.theme}
             </Link>
           )}
@@ -34,7 +58,11 @@ function LinkedList({ items }: { items: Linked[] }) {
 /** 一筆修改紀錄：展開後比對改之前和改之後。 */
 function HistoryItem({ entry, after }: { entry: HistoryEntry; after: string }) {
   const [open, setOpen] = useState(false);
-  const diff = useAsync(() => (open ? api.diff(entry.expression, after) : Promise.resolve(undefined)), [open, entry.id, after]);
+  const diff = useAsync(
+    () =>
+      open ? api.diff(entry.expression, after) : Promise.resolve(undefined),
+    [open, entry.id, after],
+  );
   return (
     <li className="px-4 py-3 sm:px-5">
       <button
@@ -44,10 +72,15 @@ function HistoryItem({ entry, after }: { entry: HistoryEntry; after: string }) {
         onClick={() => setOpen((v) => !v)}
       >
         <span>
-          <span className="font-medium">{entry.user_name ?? "已移除的帳號"}</span>
+          <span className="font-medium">
+            {entry.user_name ?? "已移除的帳號"}
+          </span>
           <span className="text-zinc-500 dark:text-zinc-400"> 改了語法</span>
         </span>
-        <span className="shrink-0 text-xs text-zinc-500 dark:text-zinc-400" title={dateTime(entry.created_at)}>
+        <span
+          className="shrink-0 text-xs text-zinc-500 dark:text-zinc-400"
+          title={dateTime(entry.created_at)}
+        >
           {timeAgo(entry.created_at)}
         </span>
       </button>
@@ -68,10 +101,15 @@ function HistoryItem({ entry, after }: { entry: HistoryEntry; after: string }) {
 
 function Comments({ keywordId }: { keywordId: number }) {
   const toast = useToast();
-  const { data, error, reload } = useAsync(() => api.comments(keywordId), [keywordId]);
+  const { data, error, reload } = useAsync(
+    () => api.comments(keywordId),
+    [keywordId],
+  );
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
-  const [editing, setEditing] = useState<{ id: number; body: string } | null>(null);
+  const [editing, setEditing] = useState<{ id: number; body: string } | null>(
+    null,
+  );
 
   const run = async (action: () => Promise<unknown>) => {
     setBusy(true);
@@ -99,7 +137,8 @@ function Comments({ keywordId }: { keywordId: number }) {
   return (
     <section className="card">
       <h2 className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3 text-sm font-semibold sm:px-5 dark:border-zinc-800">
-        <MessageSquare className="size-4 text-zinc-400" /> 留言{data ? `（${data.length}）` : ""}
+        <MessageSquare className="size-4 text-zinc-400" /> 留言
+        {data ? `（${data.length}）` : ""}
       </h2>
       {error && (
         <div className="p-4">
@@ -113,7 +152,10 @@ function Comments({ keywordId }: { keywordId: number }) {
               <div className="flex items-center justify-between gap-2">
                 <p>
                   <span className="font-medium">{c.user_name}</span>
-                  <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400" title={dateTime(c.created_at)}>
+                  <span
+                    className="ml-2 text-xs text-zinc-500 dark:text-zinc-400"
+                    title={dateTime(c.created_at)}
+                  >
                     {timeAgo(c.created_at)}
                     {c.updated_at !== c.created_at && "（編輯過）"}
                   </span>
@@ -134,7 +176,8 @@ function Comments({ keywordId }: { keywordId: number }) {
                       title="刪除留言"
                       disabled={busy}
                       onClick={() => {
-                        if (window.confirm("要刪掉這則留言嗎？")) void run(() => api.deleteComment(c.id));
+                        if (window.confirm("要刪掉這則留言嗎？"))
+                          void run(() => api.deleteComment(c.id));
                       }}
                     >
                       <Trash2 className="size-3.5" />
@@ -148,19 +191,30 @@ function Comments({ keywordId }: { keywordId: number }) {
                     className="input min-h-20"
                     aria-label="編輯留言"
                     value={editing.body}
-                    onChange={(e) => setEditing({ id: c.id, body: e.target.value })}
+                    onChange={(e) =>
+                      setEditing({ id: c.id, body: e.target.value })
+                    }
                   />
                   <div className="flex justify-end gap-2">
-                    <button className="btn btn-secondary" onClick={() => setEditing(null)}>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => setEditing(null)}
+                    >
                       取消
                     </button>
-                    <button className="btn btn-primary" disabled={busy || !editing.body.trim()} onClick={() => void save(c)}>
+                    <button
+                      className="btn btn-primary"
+                      disabled={busy || !editing.body.trim()}
+                      onClick={() => void save(c)}
+                    >
                       儲存
                     </button>
                   </div>
                 </div>
               ) : (
-                <p className="mt-1 whitespace-pre-wrap break-words text-zinc-700 dark:text-zinc-300">{c.body}</p>
+                <p className="mt-1 whitespace-pre-wrap break-words text-zinc-700 dark:text-zinc-300">
+                  {c.body}
+                </p>
               )}
             </li>
           ))}
@@ -180,7 +234,11 @@ function Comments({ keywordId }: { keywordId: number }) {
           value={body}
           onChange={(e) => setBody(e.target.value)}
         />
-        <button className="btn btn-primary self-end" type="submit" disabled={busy || !body.trim()}>
+        <button
+          className="btn btn-primary self-end"
+          type="submit"
+          disabled={busy || !body.trim()}
+        >
           <Send className="size-4" /> 留言
         </button>
       </form>
@@ -226,20 +284,29 @@ function DeleteDialog({
           <button className="btn btn-secondary" onClick={onClose}>
             取消
           </button>
-          <button className="btn btn-danger" disabled={busy} onClick={() => void remove()}>
+          <button
+            className="btn btn-danger"
+            disabled={busy}
+            onClick={() => void remove()}
+          >
             {busy ? <Spinner /> : <Trash2 className="size-4" />}
-            {cascade ? `連同 ${keyword.dependents.length} 個組合關鍵字一起刪除` : "刪除"}
+            {cascade
+              ? `連同 ${keyword.dependents.length} 個組合關鍵字一起刪除`
+              : "刪除"}
           </button>
         </>
       }
     >
       <div className="flex flex-col gap-3 text-sm">
         <p>
-          要刪掉「<span className="font-medium">{keyword.theme}</span>」嗎？修改紀錄和留言也會一起刪掉，刪了就拿不回來。
+          要刪掉「<span className="font-medium">{keyword.theme}</span>
+          」嗎？修改紀錄和留言也會一起刪掉，刪了就拿不回來。
         </p>
         {cascade && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/40">
-            <p className="mb-2 text-amber-900 dark:text-amber-200">下面這些組合關鍵字用到它，會一起被刪掉：</p>
+            <p className="mb-2 text-amber-900 dark:text-amber-200">
+              下面這些組合關鍵字用到它，會一起被刪掉：
+            </p>
             <LinkedList items={keyword.dependents} />
           </div>
         )}
@@ -253,7 +320,12 @@ export function KeywordDetailPage() {
   const id = Number(useParams().id);
   const navigate = useNavigate();
   const toast = useToast();
-  const { data: keyword, setData, error, reload } = useAsync(() => api.keyword(id), [id]);
+  const {
+    data: keyword,
+    setData,
+    error,
+    reload,
+  } = useAsync(() => api.keyword(id), [id]);
   const history = useAsync(() => api.history(id), [id]);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -287,7 +359,10 @@ export function KeywordDetailPage() {
 
   return (
     <PageBody>
-      <Link to="/keywords" className="mb-3 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-brand-700 dark:text-zinc-400 dark:hover:text-brand-300">
+      <Link
+        to="/keywords"
+        className="mb-3 inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-brand-700 dark:text-zinc-400 dark:hover:text-brand-300"
+      >
         <ArrowLeft className="size-4" /> 關鍵字
       </Link>
       <PageHeader
@@ -299,21 +374,37 @@ export function KeywordDetailPage() {
         }
         subtitle={
           <>
-            <span className="font-mono">#{keyword.id}</span>・{keyword.owner.display_name}・{dateTime(keyword.created_at)} 建立・
+            <span className="font-mono">#{keyword.id}</span>・
+            {keyword.owner.display_name}・{dateTime(keyword.created_at)} 建立・
             {timeAgo(keyword.updated_at)}更新
           </>
         }
         actions={
           <>
-            <Link className="btn btn-secondary" to={`/inspect?keyword=${keyword.id}`}><Combine className="size-4" /> 拆解與試寫</Link>
-            <FavoriteButton favorite={keyword.favorite} onToggle={() => void toggleFavorite()} withLabel />
+            <Link
+              className="btn btn-secondary"
+              to={`/inspect?keyword=${keyword.id}`}
+            >
+              <Combine className="size-4" /> 拆解與試寫
+            </Link>
+            <FavoriteButton
+              favorite={keyword.favorite}
+              onToggle={() => void toggleFavorite()}
+              withLabel
+            />
             {keyword.can_edit && (
-              <button className="btn btn-secondary" onClick={() => setEditing(true)}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setEditing(true)}
+              >
                 <Pencil className="size-4" /> 編輯
               </button>
             )}
             {keyword.can_delete && (
-              <button className="btn btn-danger" onClick={() => setDeleting(true)}>
+              <button
+                className="btn btn-danger"
+                onClick={() => setDeleting(true)}
+              >
                 <Trash2 className="size-4" /> 刪除
               </button>
             )}
@@ -321,7 +412,21 @@ export function KeywordDetailPage() {
         }
       />
 
-      <div className="mb-6"><QueryAnatomy key={`${keyword.id}:${keyword.expression}`} clauses={keyword.clauses} /></div>
+      <div className="detail-archive-label">
+        <span>ARCHIVE RECORD / {String(keyword.id).padStart(3, "0")}</span>
+        <span>
+          {keyword.is_combination
+            ? "組合索引 · 連結館藏"
+            : "一般手稿 · 獨立語法"}
+        </span>
+        <span>01 語法結構 / 02 編譯輸出 / 03 修訂記錄</span>
+      </div>
+      <div className="mb-6">
+        <QueryAnatomy
+          key={`${keyword.id}:${keyword.expression}`}
+          clauses={keyword.clauses}
+        />
+      </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <section className="card p-4 sm:p-5">
@@ -350,13 +455,17 @@ export function KeywordDetailPage() {
                   <Expression value={keyword.logic} />
                 </div>
                 <LinkedList items={keyword.refs} />
-                <p className="hint">被引用的關鍵字改了語法，這個組合關鍵字會跟著更新。</p>
+                <p className="hint">
+                  被引用的關鍵字改了語法，這個組合關鍵字會跟著更新。
+                </p>
               </div>
             )}
 
             <div className="mt-5">
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-sm font-semibold">送給搜尋引擎的 query_string</h2>
+                <h2 className="text-sm font-semibold">
+                  送給搜尋引擎的 query_string
+                </h2>
                 <CopyButton text={keyword.query_string} />
               </div>
               <code className="expr block rounded-lg bg-zinc-50 px-3 py-2.5 text-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
@@ -378,19 +487,28 @@ export function KeywordDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">沒有標籤</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                沒有標籤
+              </p>
             )}
-            <h2 className="mt-5 mb-2 text-sm font-semibold">用到的詞（{keyword.terms.length}）</h2>
+            <h2 className="mt-5 mb-2 text-sm font-semibold">
+              用到的詞（{keyword.terms.length}）
+            </h2>
             <div className="flex flex-wrap gap-1.5">
               {keyword.terms.map((t, i) => (
-                <span key={i} className="rounded-md border border-zinc-200 px-1.5 py-0.5 font-mono text-xs dark:border-zinc-700">
+                <span
+                  key={i}
+                  className="rounded-md border border-zinc-200 px-1.5 py-0.5 font-mono text-xs dark:border-zinc-700"
+                >
                   {t}
                 </span>
               ))}
             </div>
             {keyword.dependents.length > 0 && (
               <>
-                <h2 className="mt-5 mb-2 text-sm font-semibold">被這些組合關鍵字用到</h2>
+                <h2 className="mt-5 mb-2 text-sm font-semibold">
+                  被這些組合關鍵字用到
+                </h2>
                 <LinkedList items={keyword.dependents} />
               </>
             )}
@@ -406,13 +524,19 @@ export function KeywordDetailPage() {
               </div>
             )}
             {history.data && history.data.length === 0 && (
-              <p className="px-4 py-4 text-sm text-zinc-500 sm:px-5 dark:text-zinc-400">語法還沒被改過。</p>
+              <p className="px-4 py-4 text-sm text-zinc-500 sm:px-5 dark:text-zinc-400">
+                語法還沒被改過。
+              </p>
             )}
             {history.data && history.data.length > 0 && (
               <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {history.data.map((entry, i, all) => (
                   // 紀錄存的是改之前的語法，新的在前面：改之後就是上一筆，或現在的語法
-                  <HistoryItem key={entry.id} entry={entry} after={i === 0 ? keyword.expression : all[i - 1].expression} />
+                  <HistoryItem
+                    key={entry.id}
+                    entry={entry}
+                    after={i === 0 ? keyword.expression : all[i - 1].expression}
+                  />
                 ))}
               </ul>
             )}
