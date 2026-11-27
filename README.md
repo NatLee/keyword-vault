@@ -267,7 +267,7 @@ API 文件在 [docs/api.md](docs/api.md)。
 
 [典藏室設計與驗證](docs/query-cabinet.md) 記錄此版的分類導覽、字型來源與畫面驗證。
 
-所有操作截圖都來自內建的虛構 demo 資料；README 封面是獨立 HTML 插畫。可在隔離的 demo 執行個體上執行：
+原有語法庫與工作流程截圖來自內建的虛構 demo 資料；README 封面是獨立 HTML 插畫。下方統一工作台的實拍則使用全新暫存資料庫與自訂詞典，來源與步驟見[操作圖解](docs/compiler-workbench.md#實際操作圖解)。原有 demo 畫面可在隔離執行個體上重拍：
 
 ```bash
 python -m pip install playwright
@@ -345,14 +345,14 @@ Docker 對外網址請維持 `KV_PUBLIC_URL` 與 `ACCESS_PUBLIC_URL` 同源。�
 
 ## 統一工作台與中文分析
 
-`keyword-vault` 是主產品；同一個 Cargo workspace 維護可獨立使用、Rust 1.74 相容的 `es-keyword-query` 函式庫與 CLI。編譯器公用 API 和預設輸出保持不變，舊 repo 的來源與歷史會保留至完成移轉及重新導向。
+`keyword-vault` 是主產品；同一個 Cargo workspace 維護可獨立使用、Rust 1.74 相容的 `es-keyword-query` 函式庫與 CLI。編譯器公用 API 和預設輸出保持不變。[舊 repo](https://github.com/NatLee/es-keyword-query) 已完成重新導向並封存為唯讀歷史入口；來源與提交歷史持續保留。
 
 語法解剖提供 raw／precise、預設 slop、分組篩選器、最終 query string 和 JSON 匯出。**另存來源語法**只保存編輯區內容；要把篩選條件保存進語法，先明確按「套用篩選至草稿」。預覽 slop 與 raw 選項不會改寫既有關鍵字。
 
-繁體中文斷詞使用固定版本 jieba 與繁體大詞典，支援 normal／search 和管理員部署的自訂詞典。它是本機字詞預覽，不等於 Elasticsearch analyzer；不會把中文自動拆成 AND／OR，也不改變原本的子字串搜尋。詳見 [工作台、相容 API 與中文斷詞](docs/compiler-workbench.md)。
+繁體中文斷詞使用固定版本 jieba 與繁體大詞典，支援 normal／search 和管理員部署的自訂詞典。它是本機字詞預覽，不等於 Elasticsearch analyzer；不會把中文自動拆成 AND／OR，也不改變原本的子字串搜尋。從[實際操作圖解](docs/compiler-workbench.md#實際操作圖解)開始輸入、匯出與另存，再查閱同頁的相容 API 與中文斷詞設定。
 
 舊編譯器帳號可用離線 dry-run 與明確 apply 移轉；**不要用舊資料庫覆蓋 Vault 資料庫**。指紋、ID 對照、衝突及備份流程見 [帳號移轉操作](docs/compiler-migration.md)。
 
-實作與驗證紀錄見 [整合驗證](docs/consolidation-verification.md)；可用隔離的 `docs/verify-consolidation.py` 重現桌面／手機、淺色／深色操作截圖。
+下圖為隔離的全新暫存資料庫與自訂詞典實拍，使用測試管理員及合成語法，沒有正式帳號或客戶資料。實作與驗證紀錄見 [整合驗證](docs/consolidation-verification.md)；可用[擷取腳本](docs/verify-consolidation.py)重現桌面／手機、淺色／深色操作截圖。
 
 ![統一編譯工作台](docs/images/consolidation-workbench-desktop-light.png)

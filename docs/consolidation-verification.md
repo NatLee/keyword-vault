@@ -72,7 +72,7 @@ Actual protected first-login screenshots through nginx:
 
 Local jieba previews are dictionary-based and do not claim equivalence to Elasticsearch. No Elasticsearch cluster or live OAuth provider is required or was contacted. Configured custom dictionary bytes contribute to the displayed hash. The source-only save deliberately does not persist preview raw/slop settings; saving source with an unspecified `~` continues to use the server default on later compilation.
 
-Historical verification documents retain their original dates and counts. The current commands and evidence here supersede their former vendored paths and unguarded remote first-admin setup assumptions. Parent review owns the old repository redirect/archive after final acceptance; source history must remain intact.
+Historical verification documents retain their original dates and counts. The current commands and evidence here supersede their former vendored paths and unguarded remote first-admin setup assumptions. After final acceptance, the consolidation was released in [PR #9](https://github.com/NatLee/keyword-vault/pull/9); the old repository was redirected and archived. Its source and commit history remain available, while this repository owns current maintenance.
 
 
 ## Independent release-review fixes
