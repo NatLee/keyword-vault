@@ -6,7 +6,7 @@
   <a href="https://github.com/NatLee/keyword-vault/actions/workflows/ci.yml"><img src="https://github.com/NatLee/keyword-vault/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/backend-Rust%20%2B%20axum-b7410e" alt="Rust + axum">
   <img src="https://img.shields.io/badge/frontend-React%20%2B%20Tailwind-4f46e5" alt="React + Tailwind">
-  <img src="https://img.shields.io/badge/docker-one%20image-2496ed" alt="Docker">
+  <img src="https://img.shields.io/badge/docker-nginx%20%2B%20API-2496ed" alt="Docker">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
 </p>
 
@@ -14,7 +14,7 @@
 
 Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看得到實際送給 Elasticsearch / OpenSearch 的 `query_string`；寫好可以分享給群組或所有人；常用的幾組可以用編號組成新的關鍵字，底下的改了，上面的跟著更新。
 
-一個 Docker 映像檔就是全部：Rust 後端、React 前端、SQLite 資料庫，不需要另外架搜尋引擎。
+一份 Docker Compose 啟動 nginx 前端與內部 Rust API，資料存於 SQLite，不需要另外架搜尋引擎。
 
 主題索引、記錄架、語法拆解與私人版本儲存分成不同工作區。
 節點選取會連動路徑與右側詳情，過渡為 160–180ms；減少動態偏好直接顯示結果。
@@ -159,7 +159,19 @@ git clone https://github.com/NatLee/keyword-vault.git && cd keyword-vault
 docker compose up -d --build
 ```
 
-1. 打開 <http://localhost:8686>。
+只有 nginx 發布 `8686`；前端資產由 nginx 提供，API、OAuth 與 MCP 轉送至內部 `keyword-vault`。資料仍保存於原本的 SQLite volume。
+
+```mermaid
+flowchart LR
+  Browser[瀏覽器 / API / MCP] -->|:8686| Nginx[nginx]
+  Nginx --> Static[前端靜態檔案]
+  Nginx --> API[內部 Rust API]
+  API --> SQLite[(SQLite volume)]
+```
+
+瀏覽器網址須與 `ACCESS_PUBLIC_URL` 完全相同；預設使用 `http://127.0.0.1:8686`。正式 HTTPS 網域、既有 URL 變數、代理路由與升級方式見 [nginx 部署說明](docs/nginx-deployment.md)。
+
+1. 打開 <http://127.0.0.1:8686>。
 2. 第一次會請你建立管理員帳號（密碼至少 8 個字元）。
 3. 到「設定」新增其他人的帳號，需要的話建立群組。
 4. 到「語法庫」按「新增關鍵字」，或用「匯入」一次放進一批。

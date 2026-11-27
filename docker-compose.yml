@@ -1,21 +1,47 @@
 services:
   keyword-vault:
-    build: .
-    image: keyword-vault:latest
+    build:
+      context: .
+      target: runtime
+    image: keyword-vault:runtime
     container_name: keyword-vault
     restart: unless-stopped
-    ports:
-      - "${KV_PORT:-8686}:8686"
+    expose:
+      - "8686"
     volumes:
       # SQLite 資料庫在這裡，請記得備份
       - keyword-vault-data:/app/data
     environment:
+      ACCESS_PUBLIC_URL: ${ACCESS_PUBLIC_URL:-${KV_PUBLIC_URL:-http://127.0.0.1:${KV_PORT:-8686}}}
+      ACCESS_GITHUB_CLIENT_ID: ${ACCESS_GITHUB_CLIENT_ID:-}
+      ACCESS_GITHUB_CLIENT_SECRET: ${ACCESS_GITHUB_CLIENT_SECRET:-}
+      ACCESS_GOOGLE_CLIENT_ID: ${ACCESS_GOOGLE_CLIENT_ID:-}
+      ACCESS_GOOGLE_CLIENT_SECRET: ${ACCESS_GOOGLE_CLIENT_SECRET:-}
       ACCESS_DYNAMIC_CLIENT_REGISTRATION: ${ACCESS_DYNAMIC_CLIENT_REGISTRATION:-false}
       # 外部看到的網址；是 https 時登入 cookie 會加 Secure，也用來判斷寫入請求是不是同源
-      KV_PUBLIC_URL: ${KV_PUBLIC_URL:-}
+      KV_PUBLIC_URL: ${KV_PUBLIC_URL:-${ACCESS_PUBLIC_URL:-http://127.0.0.1:${KV_PORT:-8686}}}
       KV_COOKIE_SECURE: ${KV_COOKIE_SECURE:-}
       # `~` 後面沒寫數字時用的距離（預設 20）
       KV_DEFAULT_SLOP: ${KV_DEFAULT_SLOP:-}
+
+  nginx:
+    build:
+      context: .
+      target: frontend
+    image: keyword-vault-nginx:latest
+    container_name: keyword-vault-nginx
+    restart: unless-stopped
+    depends_on:
+      keyword-vault:
+        condition: service_started
+    ports:
+      - "${KV_PORT:-8686}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
 
 volumes:
   keyword-vault-data:
