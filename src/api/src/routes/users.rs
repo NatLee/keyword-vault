@@ -23,12 +23,13 @@ pub struct UserRow {
     display_name: String,
     role: String,
     disabled: bool,
+    account_status: String,
     created_at: String,
     keyword_count: i64,
 }
 
 const USER_SELECT: &str =
-    "SELECT u.id, u.username, u.display_name, u.role, u.disabled, u.created_at,
+    "SELECT u.id, u.username, u.display_name, u.role, u.disabled, u.account_status, u.created_at,
         (SELECT COUNT(*) FROM keywords k WHERE k.owner_id = u.id) AS keyword_count
      FROM users u";
 
