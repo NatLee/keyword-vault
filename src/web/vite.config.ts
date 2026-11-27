@@ -12,6 +12,9 @@ export default defineConfig({
     proxy: {
       // Preserve the browser Host so the API can validate same-origin writes.
       "/api": { target: apiTarget, changeOrigin: false },
+      "/oauth": { target: apiTarget, changeOrigin: false },
+      "/.well-known": { target: apiTarget, changeOrigin: false },
+      "/mcp": { target: apiTarget, changeOrigin: false },
     },
   },
   build: {

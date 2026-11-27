@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use sqlx::SqlitePool;
 
@@ -10,6 +10,7 @@ pub struct Inner {
     pub db: SqlitePool,
     pub config: Config,
     pub limiter: LoginLimiter,
+    pub access: OnceLock<access_kit::AccessKit>,
 }
 
 impl Inner {
@@ -18,6 +19,7 @@ impl Inner {
             db,
             config,
             limiter: LoginLimiter::default(),
+            access: OnceLock::new(),
         }
     }
 }

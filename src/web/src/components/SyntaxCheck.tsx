@@ -72,14 +72,14 @@ export function CheckResultView({
 }) {
   if (failure) {
     return (
-      <p className="flex items-center gap-1.5 text-sm text-rose-700 dark:text-rose-300">
+      <p className="flex items-center gap-2 text-sm text-rose-700 dark:text-rose-300">
         <CircleAlert className="size-4 shrink-0" /> {failure}
       </p>
     );
   }
   if (!result) {
     return pending ? (
-      <p className="flex items-center gap-1.5 text-sm text-zinc-500">
+      <p className="flex items-center gap-2 text-sm text-zinc-500">
         <Spinner /> 檢查中…
       </p>
     ) : null;
@@ -88,7 +88,7 @@ export function CheckResultView({
     return (
       <p
         role="status"
-        className="flex items-center gap-1.5 text-sm text-rose-700 dark:text-rose-300"
+        className="flex items-center gap-2 text-sm text-rose-700 dark:text-rose-300"
       >
         <CircleAlert className="size-4 shrink-0" />
         {result.error.message}（第 {result.error.position + 1} 個字元）
@@ -98,13 +98,13 @@ export function CheckResultView({
   return (
     <div role="status" className={pending ? "opacity-60" : ""}>
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-sm text-emerald-700 dark:text-emerald-400">
+        <p className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
           <CircleCheck className="size-4 shrink-0" /> 語法正確，會送出這段
           query_string
         </p>
         <CopyButton text={result.query_string} />
       </div>
-      <code className="expr mt-1 block rounded-lg bg-zinc-100 px-3 py-2 text-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
+      <code className="expr mt-1 block rounded bg-zinc-100 px-3 py-2 text-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
         {result.query_string}
       </code>
     </div>

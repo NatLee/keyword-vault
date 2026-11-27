@@ -1,5 +1,7 @@
 import { LogIn, UserPlus } from "lucide-react";
 import { useState } from "react";
+import { Providers } from "../components/Providers";
+import { authorizeNext } from "../lib/access";
 import { ErrorBanner, Spinner } from "../components/ui";
 import { ThemeToggle } from "../components/Layout";
 import { useApp } from "../context";
@@ -29,6 +31,8 @@ export function Login({ setupRequired }: { setupRequired: boolean }) {
         });
       } else {
         await login(username.trim(), password);
+        const next = authorizeNext();
+        if(next) window.location.assign(next);
       }
     } catch (e) {
       setError(errorText(e));
@@ -157,6 +161,7 @@ export function Login({ setupRequired }: { setupRequired: boolean }) {
               ? "這個帳號可以新增其他成員和群組。之後這個畫面就不會再出現。"
               : "沒有帳號或忘記密碼，請找管理員。"}
           </p>
+          {!setupRequired && <Providers />}
         </form>
         <p className="login-footnote">寫好一次，讓好語法持續累積。</p>
       </section>

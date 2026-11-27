@@ -106,7 +106,7 @@ export function QueryAnatomy({
             </p>
           )}
         </div>
-        <aside className="anatomy-note" aria-live="polite">
+        <aside key={`${index}:${current.text ?? "group"}`} className="anatomy-note" aria-live="polite">
           <span className="eyebrow">
             CLAUSE / {String(index + 1).padStart(2, "0")}
           </span>

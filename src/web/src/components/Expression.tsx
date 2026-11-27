@@ -5,7 +5,7 @@ import type { DiffSegment } from "../types";
 
 const TOKEN_CLASS: Record<Token["kind"], string> = {
   term: "",
-  operator: "px-0.5 font-semibold text-brand-600 dark:text-brand-300",
+  operator: "px-1 font-semibold text-brand-600 dark:text-brand-300",
   paren: "text-zinc-400 dark:text-zinc-500",
   near: "font-semibold text-amber-600 dark:text-amber-400",
   ref: "rounded bg-sky-100 px-1 text-sky-800 dark:bg-sky-950 dark:text-sky-300",
@@ -58,7 +58,7 @@ export function CopyButton({ text, label = "複製" }: { text: string; label?: s
   };
   return (
     <button type="button" className="btn btn-ghost px-2 py-1 text-xs" onClick={() => void copy()}>
-      {copied ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}
+      {copied ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4" />}
       {copied ? "已複製" : label}
     </button>
   );

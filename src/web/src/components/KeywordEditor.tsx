@@ -85,9 +85,9 @@ function LogicPicker({
         value={logic}
         onChange={(e) => onChange(e.target.value)}
       />
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <div className="mt-2 flex flex-wrap items-center gap-2">
         {["&", "|", "!", "(", ")"].map((op) => (
-          <button key={op} type="button" className="btn btn-secondary px-2.5 py-1 font-mono" onClick={() => insert(op)}>
+          <button key={op} type="button" className="btn btn-secondary px-3 py-1 font-mono" onClick={() => insert(op)}>
             {op}
           </button>
         ))}
@@ -107,9 +107,9 @@ function LogicPicker({
         </ul>
       )}
 
-      <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-800">
+      <div className="mt-3 rounded border border-zinc-200 dark:border-zinc-800">
         <label className="relative block border-b border-zinc-200 dark:border-zinc-800">
-          <span className="sr-only">找關鍵字</span>
+          <span className="visually-hidden">找關鍵字</span>
           <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-zinc-400" />
           <input
             className="w-full bg-transparent py-2 pr-3 pl-9 text-sm focus:outline-none"
@@ -131,14 +131,14 @@ function LogicPicker({
               <li key={k.id}>
                 <button
                   type="button"
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
                   onClick={() => insert(`#${k.id}`)}
                   title={`把 #${k.id} 放進組合方式`}
                 >
                   <span className="w-10 shrink-0 font-mono text-xs text-zinc-400">#{k.id}</span>
                   <span className="min-w-0 flex-1 truncate">{k.theme}</span>
                   <span className="hidden max-w-[45%] truncate font-mono text-xs text-zinc-400 sm:block">{k.expression}</span>
-                  <Plus className="size-3.5 shrink-0 text-brand-600 dark:text-brand-300" />
+                  <Plus className="size-4 shrink-0 text-brand-600 dark:text-brand-300" />
                 </button>
               </li>
             ))}
@@ -273,7 +273,7 @@ export function KeywordEditor({
         </div>
 
         {!keyword && (
-          <div className="flex rounded-lg bg-zinc-100 p-0.5 text-sm dark:bg-zinc-800" role="radiogroup" aria-label="種類">
+          <div className="flex rounded bg-zinc-100 p-1 text-sm dark:bg-zinc-800" role="radiogroup" aria-label="種類">
             {[
               { value: false, label: "一般關鍵字", hint: "自己寫語法" },
               { value: true, label: "組合關鍵字", hint: "用現有的關鍵字組起來" },
@@ -284,14 +284,14 @@ export function KeywordEditor({
                 role="radio"
                 aria-checked={combination === o.value}
                 onClick={() => setCombination(o.value)}
-                className={`flex-1 rounded-md px-3 py-1.5 transition-colors ${
+                className={`flex-1 rounded px-3 py-2 transition-colors ${
                   combination === o.value
-                    ? "bg-white font-medium text-brand-700 shadow-sm dark:bg-zinc-950 dark:text-brand-300"
+                    ? "bg-white font-semibold text-brand-700 shadow-none dark:bg-zinc-950 dark:text-brand-300"
                     : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100"
                 }`}
               >
                 {o.label}
-                <span className="ml-1.5 hidden text-xs font-normal text-zinc-400 sm:inline">{o.hint}</span>
+                <span className="ml-2 hidden text-xs font-normal text-zinc-400 sm:inline">{o.hint}</span>
               </button>
             ))}
           </div>
@@ -321,7 +321,7 @@ export function KeywordEditor({
         {combination && expanded && (
           <div>
             <p className="label">展開之後</p>
-            <div className="rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-950">
+            <div className="rounded bg-zinc-100 px-3 py-2 dark:bg-zinc-950">
               <Expression value={expanded} />
             </div>
           </div>
@@ -335,7 +335,7 @@ export function KeywordEditor({
             {VISIBILITIES.map((v) => (
               <label
                 key={v}
-                className={`cursor-pointer rounded-xl border px-3 py-2 text-sm transition-colors ${
+                className={`cursor-pointer rounded border px-3 py-2 text-sm transition-colors ${
                   visibility === v
                     ? "border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-950/50"
                     : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
@@ -344,11 +344,11 @@ export function KeywordEditor({
                 <input
                   type="radio"
                   name="kw-visibility"
-                  className="sr-only"
+                  className="visually-hidden"
                   checked={visibility === v}
                   onChange={() => setVisibility(v)}
                 />
-                <span className="block font-medium">{VISIBILITY_LABEL[v]}</span>
+                <span className="block font-semibold">{VISIBILITY_LABEL[v]}</span>
                 <span className="block text-xs text-zinc-500 dark:text-zinc-400">{VISIBILITY_HINT[v]}</span>
               </label>
             ))}

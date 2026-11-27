@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  ShieldCheck,
   GitCompareArrows,
   KeyRound,
   LayoutDashboard,
@@ -32,6 +33,7 @@ const NAV: NavItem[] = [
   { to: "/compare", label: "語法比對", icon: GitCompareArrows },
   { to: "/guide", label: "語法說明", icon: BookOpen },
   { to: "/settings", label: "設定", icon: Settings },
+  { to: "/connections", label: "連線與存取", icon: ShieldCheck },
 ];
 
 function Brand() {
@@ -83,7 +85,7 @@ export function ThemeToggle() {
   useEffect(() => applyTheme(theme), [theme]);
   return (
     <div
-      className="flex rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800"
+      className="flex rounded bg-zinc-100 p-1 dark:bg-zinc-800"
       role="radiogroup"
       aria-label="外觀"
     >
@@ -94,14 +96,14 @@ export function ThemeToggle() {
           aria-checked={theme === value}
           title={label}
           onClick={() => setTheme(value)}
-          className={`flex flex-1 items-center justify-center rounded-md py-1 transition-colors ${
+          className={`flex flex-1 items-center justify-center rounded py-1 transition-colors ${
             theme === value
-              ? "bg-white text-brand-700 shadow-sm dark:bg-zinc-950 dark:text-brand-300"
+              ? "bg-white text-brand-700 shadow-none dark:bg-zinc-950 dark:text-brand-300"
               : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100"
           }`}
         >
-          <Icon className="size-3.5" />
-          <span className="sr-only">{label}</span>
+          <Icon className="size-4" />
+          <span className="visually-hidden">{label}</span>
         </button>
       ))}
     </div>
@@ -135,7 +137,7 @@ export function Layout() {
           </span>
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-right text-xs sm:block">
-              <strong className="block font-medium">{user.display_name}</strong>
+              <strong className="block font-semibold">{user.display_name}</strong>
               <span className="text-zinc-500">{ROLE_LABEL[user.role]}</span>
             </span>
             <button

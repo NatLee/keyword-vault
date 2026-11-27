@@ -331,7 +331,7 @@ function Accounts({ accounts, error, reload }: { accounts?: Account[]; error: st
                 return (
                   <tr key={a.id} className={a.disabled ? "text-zinc-400 dark:text-zinc-500" : ""}>
                     <td className="td">
-                      <span className="font-medium">{a.display_name}</span>
+                      <span className="font-semibold">{a.display_name}</span>
                       <span className="ml-2 font-mono text-xs text-zinc-500 dark:text-zinc-400">{a.username}</span>
                       {self && <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400">（你）</span>}
                       {a.disabled && (
@@ -356,7 +356,7 @@ function Accounts({ accounts, error, reload }: { accounts?: Account[]; error: st
                     <td className="td whitespace-nowrap">{dateTime(a.created_at)}</td>
                     <td className="td text-right whitespace-nowrap">
                       <button className="btn btn-ghost px-2 py-1 text-xs" onClick={() => setDialog({ account: a })}>
-                        <Pencil className="size-3.5" /> 編輯
+                        <Pencil className="size-4" /> 編輯
                       </button>
                       {!self && (
                         <button
@@ -462,13 +462,13 @@ function GroupDialog({
         </div>
         <fieldset>
           <legend className="label">成員（{members.size}）</legend>
-          <div className="max-h-56 overflow-y-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <div className="max-h-56 overflow-y-auto rounded border border-zinc-200 dark:border-zinc-800">
             {accounts
               .filter((a) => !a.disabled || members.has(a.id))
               .map((a) => (
                 <label
                   key={a.id}
-                  className="flex cursor-pointer items-center gap-2.5 border-b border-zinc-100 px-3 py-2 text-sm last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                  className="flex cursor-pointer items-center gap-3 border-b border-zinc-100 px-3 py-2 text-sm last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
                 >
                   <input
                     type="checkbox"
@@ -531,11 +531,11 @@ function Groups({ accounts }: { accounts?: Account[] }) {
           {data.map((g) => (
             <li key={g.id} className="flex items-start justify-between gap-3 px-4 py-3 sm:px-5">
               <div className="min-w-0">
-                <p className="text-sm font-medium">
+                <p className="text-sm font-semibold">
                   {g.name}
                   <span className="ml-2 text-xs font-normal text-zinc-500 dark:text-zinc-400">{g.members.length} 人</span>
                 </p>
-                <p className="mt-1 flex flex-wrap gap-1.5">
+                <p className="mt-1 flex flex-wrap gap-2">
                   {g.members.map((m) => (
                     <Badge key={m.id}>{m.display_name}</Badge>
                   ))}
@@ -543,11 +543,11 @@ function Groups({ accounts }: { accounts?: Account[] }) {
               </div>
               {admin && (
                 <span className="flex shrink-0">
-                  <button className="btn btn-ghost px-1.5 py-1" title={`編輯 ${g.name}`} onClick={() => setDialog({ group: g })}>
-                    <Pencil className="size-3.5" />
+                  <button className="btn btn-ghost px-2 py-1" title={`編輯 ${g.name}`} onClick={() => setDialog({ group: g })}>
+                    <Pencil className="size-4" />
                   </button>
-                  <button className="btn btn-ghost px-1.5 py-1" title={`刪除 ${g.name}`} onClick={() => void remove(g)}>
-                    <Trash2 className="size-3.5" />
+                  <button className="btn btn-ghost px-2 py-1" title={`刪除 ${g.name}`} onClick={() => void remove(g)}>
+                    <Trash2 className="size-4" />
                   </button>
                 </span>
               )}

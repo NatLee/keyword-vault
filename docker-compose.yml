@@ -10,6 +10,7 @@ services:
       # SQLite 資料庫在這裡，請記得備份
       - keyword-vault-data:/app/data
     environment:
+      ACCESS_DYNAMIC_CLIENT_REGISTRATION: ${ACCESS_DYNAMIC_CLIENT_REGISTRATION:-false}
       # 外部看到的網址；是 https 時登入 cookie 會加 Secure，也用來判斷寫入請求是不是同源
       KV_PUBLIC_URL: ${KV_PUBLIC_URL:-}
       KV_COOKIE_SECURE: ${KV_COOKIE_SECURE:-}

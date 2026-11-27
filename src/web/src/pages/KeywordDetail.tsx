@@ -33,7 +33,7 @@ import type { Comment, HistoryEntry, KeywordDetail, Linked } from "../types";
 
 function LinkedList({ items }: { items: Linked[] }) {
   return (
-    <ul className="flex flex-col gap-1.5 text-sm">
+    <ul className="flex flex-col gap-2 text-sm">
       {items.map((k) => (
         <li key={k.id} className="flex items-center gap-2">
           <span className="rounded bg-sky-100 px-1 font-mono text-xs text-sky-800 dark:bg-sky-950 dark:text-sky-300">
@@ -72,7 +72,7 @@ function HistoryItem({ entry, after }: { entry: HistoryEntry; after: string }) {
         onClick={() => setOpen((v) => !v)}
       >
         <span>
-          <span className="font-medium">
+          <span className="font-semibold">
             {entry.user_name ?? "已移除的帳號"}
           </span>
           <span className="text-zinc-500 dark:text-zinc-400"> 改了語法</span>
@@ -85,7 +85,7 @@ function HistoryItem({ entry, after }: { entry: HistoryEntry; after: string }) {
         </span>
       </button>
       {open && (
-        <div className="mt-2 rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-950">
+        <div className="mt-2 rounded bg-zinc-50 px-3 py-2 dark:bg-zinc-950">
           {diff.error ? (
             <ErrorBanner message={diff.error} />
           ) : diff.data ? (
@@ -151,7 +151,7 @@ function Comments({ keywordId }: { keywordId: number }) {
             <li key={c.id} className="px-4 py-3 text-sm sm:px-5">
               <div className="flex items-center justify-between gap-2">
                 <p>
-                  <span className="font-medium">{c.user_name}</span>
+                  <span className="font-semibold">{c.user_name}</span>
                   <span
                     className="ml-2 text-xs text-zinc-500 dark:text-zinc-400"
                     title={dateTime(c.created_at)}
@@ -163,16 +163,16 @@ function Comments({ keywordId }: { keywordId: number }) {
                 <span className="flex shrink-0">
                   {c.can_edit && (
                     <button
-                      className="btn btn-ghost px-1.5 py-1"
+                      className="btn btn-ghost px-2 py-1"
                       title="編輯留言"
                       onClick={() => setEditing({ id: c.id, body: c.body })}
                     >
-                      <Pencil className="size-3.5" />
+                      <Pencil className="size-4" />
                     </button>
                   )}
                   {c.can_delete && (
                     <button
-                      className="btn btn-ghost px-1.5 py-1"
+                      className="btn btn-ghost px-2 py-1"
                       title="刪除留言"
                       disabled={busy}
                       onClick={() => {
@@ -180,7 +180,7 @@ function Comments({ keywordId }: { keywordId: number }) {
                           void run(() => api.deleteComment(c.id));
                       }}
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-4" />
                     </button>
                   )}
                 </span>
@@ -299,11 +299,11 @@ function DeleteDialog({
     >
       <div className="flex flex-col gap-3 text-sm">
         <p>
-          要刪掉「<span className="font-medium">{keyword.theme}</span>
+          要刪掉「<span className="font-semibold">{keyword.theme}</span>
           」嗎？修改紀錄和留言也會一起刪掉，刪了就拿不回來。
         </p>
         {cascade && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/40">
+          <div className="rounded border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/40">
             <p className="mb-2 text-amber-900 dark:text-amber-200">
               下面這些組合關鍵字用到它，會一起被刪掉：
             </p>
@@ -442,16 +442,16 @@ export function KeywordDetailPage() {
                 <CopyButton text={keyword.expression} />
               </span>
             </div>
-            <div className="rounded-lg bg-zinc-50 px-3 py-2.5 dark:bg-zinc-950">
+            <div className="rounded bg-zinc-50 px-3 py-3 dark:bg-zinc-950">
               <Expression value={keyword.expression} />
             </div>
 
             {keyword.logic && (
               <div className="mt-5">
-                <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+                <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
                   <Combine className="size-4 text-zinc-400" /> 組合方式
                 </h2>
-                <div className="mb-3 rounded-lg bg-zinc-50 px-3 py-2.5 dark:bg-zinc-950">
+                <div className="mb-3 rounded bg-zinc-50 px-3 py-3 dark:bg-zinc-950">
                   <Expression value={keyword.logic} />
                 </div>
                 <LinkedList items={keyword.refs} />
@@ -468,7 +468,7 @@ export function KeywordDetailPage() {
                 </h2>
                 <CopyButton text={keyword.query_string} />
               </div>
-              <code className="expr block rounded-lg bg-zinc-50 px-3 py-2.5 text-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
+              <code className="expr block rounded bg-zinc-50 px-3 py-3 text-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
                 {keyword.query_string}
               </code>
             </div>
@@ -481,7 +481,7 @@ export function KeywordDetailPage() {
           <section className="card p-4 sm:p-5">
             <h2 className="mb-2 text-sm font-semibold">標籤</h2>
             {keyword.tags.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {keyword.tags.map((t) => (
                   <TagLink key={t} tag={t} />
                 ))}
@@ -494,11 +494,11 @@ export function KeywordDetailPage() {
             <h2 className="mt-5 mb-2 text-sm font-semibold">
               用到的詞（{keyword.terms.length}）
             </h2>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {keyword.terms.map((t, i) => (
                 <span
                   key={i}
-                  className="rounded-md border border-zinc-200 px-1.5 py-0.5 font-mono text-xs dark:border-zinc-700"
+                  className="rounded border border-zinc-200 px-2 py-1 font-mono text-xs dark:border-zinc-700"
                 >
                   {t}
                 </span>

@@ -16,6 +16,10 @@ Keyword Vault 是放這些語法的地方：寫的時候馬上檢查語法、看
 
 一個 Docker 映像檔就是全部：Rust 後端、React 前端、SQLite 資料庫，不需要另外架搜尋引擎。
 
+主題索引、記錄架、語法拆解與私人版本儲存分成不同工作區。
+節點選取會連動路徑與右側詳情，過渡為 160–180ms；減少動態偏好直接顯示結果。
+[觀看實際節點操作錄影（WebM）](docs/images/feature-motion.webm) · [樣式與無障礙驗證](docs/themed-motion-verification.md)。
+
 ## 從主題分冊，到一份新的私人草稿
 
 以下三張圖來自內建的虛構 demo，在隔離執行個體操作同一筆 **#1「珍珠奶茶」**。
@@ -264,6 +268,31 @@ KV_QA_URL=http://localhost:5173 KV_QA_PASSWORD='<demo password>' python docs/cap
 <img src="docs/images/screenshot-mobile-light.png" alt="手機版語法庫" width="390">
 
 </details>
+
+## Account connections, API and MCP
+
+Use the existing password setup/login and visit **連線與存取**. Existing account IDs, owner/public/group visibility and expression limits remain authoritative for API and MCP. A private record does not become visible simply because the caller is an administrator. Group removal and account disable take effect on the next invocation.
+
+The canonical default is `http://127.0.0.1:8686`. Set `ACCESS_PUBLIC_URL` to the exact browser origin, including its port. For Vite development use `ACCESS_PUBLIC_URL=http://localhost:5173` on the backend; Vite proxies `/api`, `/oauth`, `/.well-known` and `/mcp` without rewriting the browser Host.
+
+`ACCESS_PUBLIC_URL` is the canonical origin used for issuer, resource, callback and same-origin checks. Use HTTPS in deployment; HTTPS forces Secure cookies. Configure GitHub with `ACCESS_GITHUB_CLIENT_ID` / `ACCESS_GITHUB_CLIENT_SECRET`, and Google with `ACCESS_GOOGLE_CLIENT_ID` / `ACCESS_GOOGLE_CLIENT_SECRET`. Register these exact callback URLs with the providers:
+
+- `{origin}/oauth/callback/github`
+- `{origin}/oauth/callback/google`
+
+Sign into an existing local account first and link its provider identity in Connections. Provider login requires an existing binding; there is no automatic signup or email-based account merge. Missing provider configuration produces disabled native buttons with an explanation. Disconnecting cannot remove the final login method.
+
+Connections creates a personal key with explicit scope (`keywords:read / expressions:read`), audience (`{origin}/api/v1` and/or `{origin}/mcp`) and expiry. Copy its raw value once; closing the panel removes it from the UI, and it is never stored in browser storage. Revoke keys and OAuth grants from the same page. Only cookie sessions can manage connections, clients and consent.
+
+Domain operations are `search_keywords`, `get_keyword`, `inspect_expression`, `compare_expressions`. API calls use `POST /api/v1/{operation}`, JSON arguments and `Authorization: Bearer <key-or-access-token>`; `/api/v1/openapi.json` describes the fixed schemas. No caller-supplied destination URL or identity header is supported. MCP uses Streamable HTTP at `/mcp`, negotiated version **2026-07-28**, discovery and normal SDK tool calls (no custom initialize payload). OAuth clients discover metadata, use authorization code + PKCE S256, exact resource/audience and the native immutable consent form; administrators register approved client redirect URIs in Connections. Public dynamic registration is disabled by default; set `ACCESS_DYNAMIC_CLIENT_REGISTRATION=true` only when needed. Admin registration remains available.
+
+Usage shows real UTC daily counts for 7/30/90 days, outcomes, transports and pending attempts. A real domain operation records one attempt across API/MCP; discovery, management and rejected credentials do not inflate usage. Detailed audit retention is 90 days. Event payloads omit raw keys, tokens and domain arguments/results. Legacy HTTP spans record method and matched route patterns; access routes and internal dispatch avoid payload tracing.
+
+![Personal key metadata after the raw value was closed](docs/images/access-01.png)
+![Actual local API and MCP usage](docs/images/access-02.png)
+![Native OAuth consent](docs/images/access-03.png)
+
+These are real local workflows with synthetic domain data and the feature-gated loopback provider, including signed Google OIDC verification. They do not claim live provider registration. [Access verification and reproduction](docs/access-verification.md) records tests, screenshot provenance and remaining deployment checks.
 
 ## 授權
 

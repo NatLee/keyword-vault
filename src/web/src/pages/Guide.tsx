@@ -42,7 +42,7 @@ export function Guide() {
       <section className="card mb-4 p-4 sm:p-5">
         <h2 className="mb-1 text-sm font-semibold">試試看</h2>
         <p className="mb-3 text-sm text-zinc-500 dark:text-zinc-400">邊打邊檢查，下面是實際送出去的 query_string。</p>
-        <label className="sr-only" htmlFor="guide-expression">
+        <label className="visually-hidden" htmlFor="guide-expression">
           關鍵字語法
         </label>
         <textarea
@@ -64,10 +64,10 @@ export function Guide() {
         </label>
         <CheckResultView {...check} />
         {check.result?.valid && check.result.terms.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span className="text-zinc-500 dark:text-zinc-400">用到的詞</span>
             {check.result.terms.map((t, i) => (
-              <span key={i} className="rounded-md border border-zinc-200 px-1.5 py-0.5 font-mono dark:border-zinc-700">
+              <span key={i} className="rounded border border-zinc-200 px-2 py-1 font-mono dark:border-zinc-700">
                 {t}
               </span>
             ))}
@@ -111,7 +111,7 @@ export function Guide() {
             {ERRORS.map((e) => (
               <li key={e.bad} className="flex items-baseline gap-3">
                 <button
-                  className="w-20 shrink-0 rounded bg-rose-50 px-1.5 py-0.5 text-left font-mono text-xs text-rose-800 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300"
+                  className="w-20 shrink-0 rounded bg-rose-50 px-2 py-1 text-left font-mono text-xs text-rose-800 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300"
                   title="放到練習區"
                   onClick={() => setExpression(e.bad)}
                 >
