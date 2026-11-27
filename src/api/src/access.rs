@@ -194,7 +194,7 @@ impl Host for VaultHost {
         }
     }
     fn operations(&self) -> Vec<DomainOperation> {
-        vec![
+        let mut registry = vec![
             operation(
                 "search_keywords",
                 "Search visible owner/public/shared-group keyword records",
@@ -217,13 +217,22 @@ impl Host for VaultHost {
                 json!(["expression"]),
             ),
             operation(
+                "inspect_workbench",
+                "Inspect and compose source and filter without changing stored expressions",
+                "expressions:read",
+                json!({"expression":{"type":"string","maxLength":50000},"filter_expression":{"type":"string","maxLength":50000},"precise":{"type":"boolean"},"default_slop":{"type":"integer","minimum":0,"maximum":4294967295_u64}}),
+                json!(["expression"]),
+            ),
+            operation(
                 "compare_expressions",
                 "Compare expressions with the existing character diff",
                 "expressions:read",
                 json!({"a":{"type":"string","maxLength":10000},"b":{"type":"string","maxLength":10000}}),
                 json!(["a", "b"]),
             ),
-        ]
+        ];
+        registry.extend(crate::compiler_compat::operations());
+        registry
     }
     fn execute(&self, invocation: Invocation) -> HostFuture<'_, Value> {
         Box::pin(async move {
@@ -267,6 +276,12 @@ impl Host for VaultHost {
                     ),
                     Value::Null,
                 ),
+                "compile_query" | "inspect_query" | "extract_terms" => (
+                    Method::POST,
+                    format!("/compiler/{}", invocation.operation()),
+                    args.clone(),
+                ),
+                "inspect_workbench" => (Method::POST, "/tools/inspect".into(), args.clone()),
                 "inspect_expression" => (Method::POST, "/tools/check".into(), args.clone()),
                 "compare_expressions" => (Method::POST, "/tools/diff".into(), args.clone()),
                 _ => {

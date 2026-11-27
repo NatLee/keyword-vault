@@ -484,3 +484,126 @@ async fn official_stateless_sdk_uses_current_group_visibility_and_counts_each_ca
     let _ = client.cancel().await;
     server.abort();
 }
+
+#[tokio::test]
+async fn compiler_compatibility_preserves_contracts_scope_and_audits_once() {
+    let (_dir, state, router) = fixture().await;
+    let (_, cookie) = user(&state, "compilerowner", "admin").await;
+    let legacy = key(&router, &cookie, json!(["queries:read"]), json!(["api"])).await;
+    let current = key(
+        &router,
+        &cookie,
+        json!(["expressions:read"]),
+        json!(["api"]),
+    )
+    .await;
+    let (status, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/compile_query",
+        None,
+        Some(&legacy),
+        Some(json!({"expression":"a|b"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(result, json!({"query_string":"\"a\" OR \"b\""}));
+    let (_, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/extract_terms",
+        None,
+        Some(&legacy),
+        Some(json!({"expression":"茶!(廣告|業配)"})),
+    )
+    .await;
+    assert_eq!(result, json!({"terms":["茶","廣告","業配"]}));
+    let (status, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/inspect_query",
+        None,
+        Some(&legacy),
+        Some(json!({"expression":"a&&b"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(!result.to_string().contains("不可"));
+    let (status, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/inspect_expression",
+        None,
+        Some(&current),
+        Some(json!({"expression":"a&&b"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(result["valid"], false);
+    assert!(result["error"]["message"]
+        .as_str()
+        .unwrap()
+        .contains("不可"));
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/v1/compile_query",
+        None,
+        Some(&current),
+        Some(json!({"expression":"tea"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    let attempts: i64 = sqlx::query_scalar("SELECT SUM(attempts) FROM access_daily")
+        .fetch_one(&state.db)
+        .await
+        .unwrap();
+    assert_eq!(
+        attempts, 5,
+        "each authenticated operation attempt is counted once"
+    );
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/compiler/inspect",
+        Some(&cookie),
+        None,
+        Some(json!({"expression":"茶".repeat(40_001)})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/compiler/inspect",
+        Some(&cookie),
+        None,
+        Some(json!({"expression":"tea","unknown":true})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    let (status, _) = call(
+        &router,
+        Method::POST,
+        "/api/compiler/inspect",
+        None,
+        None,
+        Some(json!({"expression":"tea"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    let (status, result) = call(
+        &router,
+        Method::POST,
+        "/api/v1/inspect_workbench",
+        None,
+        Some(&current),
+        Some(json!({"expression":"tea|coffee","filter_expression":"shop|cafe"})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(
+        result["inspection"]["query_string"],
+        r#"("shop" OR "cafe") AND ("tea" OR "coffee")"#
+    );
+}

@@ -4,6 +4,7 @@
 pub mod access;
 pub mod auth;
 pub mod combo;
+pub mod compiler_compat;
 pub mod config;
 pub mod db;
 pub mod demo;
@@ -11,6 +12,7 @@ pub mod error;
 pub mod routes;
 pub mod state;
 pub mod syntax;
+pub mod workbench;
 
 use std::sync::Arc;
 

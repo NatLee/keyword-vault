@@ -11,6 +11,17 @@ use crate::{
     syntax::{self, MAX_EXPANDED_CHARS},
 };
 
+pub async fn inspect(
+    State(state): State<AppState>,
+    _user: CurrentUser,
+    Json(input): Json<crate::workbench::InspectInput>,
+) -> AppResult<Json<Value>> {
+    Ok(Json(crate::workbench::inspect(
+        input,
+        state.config.default_slop,
+    )?))
+}
+
 #[derive(Deserialize)]
 pub struct CheckBody {
     expression: String,

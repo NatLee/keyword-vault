@@ -155,6 +155,7 @@ export function providerError(search = window.location.search): string | null {
 export const SCOPE_LABEL: Record<string, string> = {
   "keywords:read": "語法讀取",
   "expressions:read": "語法檢查與比對",
+  "queries:read": "編譯器相容 API",
 };
 export const utc = (value: string | null) =>
   value ? value.replace("T", " ").replace(/\.\d+Z$/, "Z") : "尚未使用";
